@@ -3,9 +3,9 @@
  * @description Next.js 15 호환 PWA Service Worker
  */
 
-const CACHE_NAME = 'inkwang-erp-v2';
-const STATIC_CACHE = 'static-v2';
-const DYNAMIC_CACHE = 'dynamic-v2';
+const CACHE_NAME = 'inkwang-erp-v3';
+const STATIC_CACHE = 'static-v3';
+const DYNAMIC_CACHE = 'dynamic-v3';
 
 // 캐시할 정적 파일 목록
 const STATIC_FILES = [
@@ -64,6 +64,11 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // POST, PUT, DELETE 등 GET이 아닌 요청은 캐시하지 않음
+  if (request.method !== 'GET') {
+    return;
+  }
+
   // Supabase 인증 요청은 Service Worker에서 처리하지 않음 (redirect 문제 방지)
   if (
     url.hostname.includes('supabase.co') ||
@@ -73,7 +78,7 @@ self.addEventListener('fetch', (event) => {
     return; // Service Worker가 개입하지 않음
   }
 
-  // API 요청은 Network First
+  // API 요청은 Network First (GET만)
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request, { redirect: 'follow' }) // redirect 명시적 허용
@@ -96,7 +101,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 정적 파일은 Cache First
+  // 정적 파일은 Cache First (GET만)
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) {
