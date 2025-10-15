@@ -3,9 +3,9 @@
  * @description Next.js 15 호환 PWA Service Worker
  */
 
-const CACHE_NAME = 'inkwang-erp-v1';
-const STATIC_CACHE = 'static-v1';
-const DYNAMIC_CACHE = 'dynamic-v1';
+const CACHE_NAME = 'inkwang-erp-v2';
+const STATIC_CACHE = 'static-v2';
+const DYNAMIC_CACHE = 'dynamic-v2';
 
 // 캐시할 정적 파일 목록
 const STATIC_FILES = [
@@ -64,11 +64,25 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Supabase 인증 요청은 Service Worker에서 처리하지 않음 (redirect 문제 방지)
+  if (
+    url.hostname.includes('supabase.co') ||
+    url.pathname.startsWith('/auth/') ||
+    url.pathname.includes('/callback')
+  ) {
+    return; // Service Worker가 개입하지 않음
+  }
+
   // API 요청은 Network First
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(request)
+      fetch(request, { redirect: 'follow' }) // redirect 명시적 허용
         .then((response) => {
+          // redirect 응답은 캐시하지 않음
+          if (response.type === 'opaqueredirect' || response.redirected) {
+            return response;
+          }
+
           const clonedResponse = response.clone();
           caches.open(DYNAMIC_CACHE).then((cache) => {
             cache.put(request, clonedResponse);
@@ -89,9 +103,15 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
-      return fetch(request).then((response) => {
-        // 유효한 응답만 캐시
-        if (!response || response.status !== 200 || response.type === 'error') {
+      return fetch(request, { redirect: 'follow' }).then((response) => {
+        // 유효한 응답만 캐시 (redirect 응답 제외)
+        if (
+          !response ||
+          response.status !== 200 ||
+          response.type === 'error' ||
+          response.type === 'opaqueredirect' ||
+          response.redirected
+        ) {
           return response;
         }
 
