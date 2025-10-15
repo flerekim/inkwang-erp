@@ -1,0 +1,99 @@
+/**
+ * Service Worker for 인광 ERP
+ * @description Next.js 15 호환 PWA Service Worker
+ */
+
+const CACHE_NAME = 'inkwang-erp-v1';
+const STATIC_CACHE = 'static-v1';
+const DYNAMIC_CACHE = 'dynamic-v1';
+
+// 캐시할 정적 파일 목록
+const STATIC_FILES = [
+  '/',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+];
+
+// Service Worker 설치
+self.addEventListener('install', (event) => {
+  console.log('[Service Worker] Installing...');
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then((cache) => {
+      console.log('[Service Worker] Caching static files');
+      return cache.addAll(STATIC_FILES);
+    })
+  );
+  self.skipWaiting();
+});
+
+// Service Worker 활성화
+self.addEventListener('activate', (event) => {
+  console.log('[Service Worker] Activating...');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((cacheName) => {
+            return (
+              cacheName !== STATIC_CACHE &&
+              cacheName !== DYNAMIC_CACHE &&
+              cacheName !== CACHE_NAME
+            );
+          })
+          .map((cacheName) => {
+            console.log('[Service Worker] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Fetch 이벤트 처리 (Network First 전략)
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // API 요청은 Network First
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const clonedResponse = response.clone();
+          caches.open(DYNAMIC_CACHE).then((cache) => {
+            cache.put(request, clonedResponse);
+          });
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request);
+        })
+    );
+    return;
+  }
+
+  // 정적 파일은 Cache First
+  event.respondWith(
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(request).then((response) => {
+        // 유효한 응답만 캐시
+        if (!response || response.status !== 200 || response.type === 'error') {
+          return response;
+        }
+
+        const clonedResponse = response.clone();
+        caches.open(DYNAMIC_CACHE).then((cache) => {
+          cache.put(request, clonedResponse);
+        });
+
+        return response;
+      });
+    })
+  );
+});
