@@ -9,7 +9,7 @@ import { formatBusinessNumber } from '@/lib/utils';
 import type { Customer } from '@/types';
 
 interface CreateColumnsOptions {
-  handleUpdateCell: (rowIndex: number, columnId: string, value: string | number) => Promise<void>;
+  handleUpdateCell: (rowIndex: number, columnId: string, value: string) => Promise<void>;
   handleUpdateNewRow: (field: string, value: unknown) => void;
 }
 
@@ -218,7 +218,10 @@ export function createColumns({ handleUpdateCell, handleUpdateNewRow }: CreateCo
             value={String(getValue<number>() || '')}
             rowIndex={row.index}
             columnId="sort_order"
-            onUpdate={async (idx, field, value) => handleUpdateNewRow(field, parseInt(value, 10) || 0)}
+            onUpdate={async (idx, field, value) => {
+              const numValue = parseInt(value, 10) || 0;
+              handleUpdateNewRow(field, numValue);
+            }}
             type="number"
             className="border border-primary/50"
           />

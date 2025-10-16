@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { type RowSelectionState } from '@tanstack/react-table';
 import { DataTable } from '@/components/common/data-table';
+import { useTableState } from '@/hooks/use-table-state';
 import { CrudTableToolbar } from '@/components/common/crud-table-toolbar';
 import { DeleteConfirmDialog } from '@/components/dialogs/delete-confirm-dialog';
 import { ExportToExcel, type ExportColumn } from '@/components/common/export-to-excel';
@@ -37,16 +37,22 @@ export function OrdersTable({ data }: OrdersTableProps) {
   const { toast } = useToast();
   const router = useRouter();
 
-  // 데이터 메모이제이션 (TanStack Table 안정성 확보)
-  const memoizedData = React.useMemo(() => data, [data]);
-  const [tableData, setTableData] = React.useState<OrderWithDetails[]>(memoizedData);
-  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
-  const [isDeleting, setIsDeleting] = React.useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-
-  // 신규 행 관리 (인라인 추가)
-  const [newRowData, setNewRowData] = React.useState<Partial<OrderWithDetails> | null>(null);
-  const [isSavingNewRow, setIsSavingNewRow] = React.useState(false);
+  // 테이블 상태 관리 (useTableState Hook 사용)
+  const {
+    tableData,
+    setTableData,
+    rowSelection,
+    setRowSelection,
+    isDeleting,
+    setIsDeleting,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    newRowData,
+    setNewRowData,
+    isSavingNewRow,
+    setIsSavingNewRow,
+    selectedCount,
+  } = useTableState<OrderWithDetails>(data);
 
   // 오염물질 편집 다이얼로그
   const [pollutantDialogOpen, setPollutantDialogOpen] = React.useState(false);
@@ -156,6 +162,8 @@ export function OrdersTable({ data }: OrdersTableProps) {
 
       return { ...prev, [field]: processedValue };
     });
+    // setNewRowData는 React의 setState 함수이므로 의존성 배열에 포함 불필요
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 기존 행 셀 업데이트 (인라인 편집) - useCallback으로 메모이제이션
@@ -192,6 +200,8 @@ export function OrdersTable({ data }: OrdersTableProps) {
         throw error;
       }
     },
+    // setTableData는 React의 setState 함수이므로 의존성 배열에 포함 불필요
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [tableData, toast, router]
   );
 
@@ -363,6 +373,8 @@ export function OrdersTable({ data }: OrdersTableProps) {
         order.id === orderId ? { ...order, attachments: attachmentPaths } : order
       )
     );
+    // setTableData는 React의 setState 함수이므로 의존성 배열에 포함 불필요
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 부모 계약 선택
@@ -606,9 +618,6 @@ export function OrdersTable({ data }: OrdersTableProps) {
     ]
   );
 
-  // 선택된 행 개수
-  const selectedCount = Object.keys(rowSelection).length;
-
   // 모바일용 필터링된 데이터
   const filteredMobileData = React.useMemo(() => {
     if (!searchQuery.trim()) {
@@ -711,6 +720,11 @@ export function OrdersTable({ data }: OrdersTableProps) {
           enableRowSelection
           rowSelection={rowSelection}
           onRowSelectionChange={setRowSelection}
+          enableFuzzyFilter={true}
+          enableColumnResizing={true}
+          columnResizeMode="onChange"
+          enablePageSizeSelection={true}
+          enablePageJump={true}
           toolbar={
             <CrudTableToolbar
               isAddingNew={!!newRowData}

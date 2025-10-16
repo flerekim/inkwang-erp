@@ -4,13 +4,19 @@ import { useState } from 'react';
 import { Header } from './header';
 import { Sidebar } from './sidebar';
 import type { UserWithDetails } from '@/types';
+import type { Module } from '@/lib/modules/types';
 
 interface DashboardLayoutProps {
   user: UserWithDetails;
+  modules: Module[];
   children: React.ReactNode;
 }
 
-export function DashboardLayout({ user, children }: DashboardLayoutProps) {
+export function DashboardLayout({
+  user,
+  modules,
+  children,
+}: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -21,6 +27,7 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
       {/* 사이드바 */}
       <Sidebar
         user={user}
+        modules={modules}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />

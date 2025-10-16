@@ -134,10 +134,10 @@ export function createCrudActions<T extends { id: string }>(
 
       try {
         // Supabase의 유니온 타입(companies | departments | ...) 때문에 타입 단언 필요
-        // 각 테이블 타입이 서로 호환되지 않아 공통 타입으로 변환
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // 각 테이블 타입이 서로 호환되지 않아 any로 타입 단언 필요
         const { data: insertedData, error } = await supabase
           .from(tableName)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .insert(data as any)
           .select()
           .single();

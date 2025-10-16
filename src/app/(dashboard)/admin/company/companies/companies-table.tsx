@@ -1,146 +1,84 @@
 'use client';
 
 import * as React from 'react';
-import { type RowSelectionState } from '@tanstack/react-table';
 import { DataTable } from '@/components/common/data-table';
 import { CrudTableToolbar } from '@/components/common/crud-table-toolbar';
 import { DeleteConfirmDialog } from '@/components/dialogs/delete-confirm-dialog';
 import { ExportToExcel, type ExportColumn } from '@/components/common/export-to-excel';
 import { PrintTable, type PrintColumn } from '@/components/common/print-table';
-import { createColumns } from './columns';
-import { updateCompany, deleteCompany, createCompany } from '@/actions/companies';
+import { createCompanyColumns } from './company-columns';
+import {
+  updateCompany,
+  deleteCompany,
+  createCompany,
+} from '@/actions/companies';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { formatBusinessNumber } from '@/lib/utils';
+import { useTableState } from '@/hooks/use-table-state';
+import { useTableActions } from '@/hooks/use-table-actions';
 import type { Company } from '@/types';
 
 interface CompaniesTableProps {
   data: Company[];
 }
 
-/**
- * 회사 정보 테이블
- * - 사원관리 패턴을 따라 CRUD 기능 구현
- * - DB에 실제로 존재하는 필드만 사용
- */
-export function CompaniesTable({ data: initialData }: CompaniesTableProps) {
+export function CompaniesTable({ data }: CompaniesTableProps) {
   const { toast } = useToast();
-  const router = useRouter();
-  const [tableData, setTableData] = React.useState<Company[]>(initialData);
-  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
-  const [isDeleting, setIsDeleting] = React.useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
 
-  // 새 행 관리
-  const [newRowData, setNewRowData] = React.useState<Partial<Company> | null>(null);
-  const [isSavingNewRow, setIsSavingNewRow] = React.useState(false);
+  // 테이블 상태 관리 (useTableState Hook 사용)
+  const {
+    tableData,
+    setTableData,
+    rowSelection,
+    setRowSelection,
+    isDeleting,
+    setIsDeleting,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    newRowData,
+    setNewRowData,
+    isSavingNewRow,
+    setIsSavingNewRow,
+    selectedCount,
+    displayData,
+  } = useTableState<Company>(data);
 
-  // 데이터가 변경되면 로컬 상태 업데이트
-  React.useEffect(() => {
-    setTableData(initialData);
-  }, [initialData]);
-
-  // 셀 업데이트 핸들러
-  const handleUpdateCell = React.useCallback(
-    async (rowIndex: number, columnId: string, value: string) => {
-      const company = tableData[rowIndex];
-      if (!company) return;
-
-      // 낙관적 업데이트
-      setTableData((old) =>
-        old.map((row, index) => {
-          if (index === rowIndex) {
-            return {
-              ...row,
-              [columnId]: value,
-            };
-          }
-          return row;
-        })
-      );
-
-      // 서버 업데이트
-      try {
-        const result = await updateCompany(company.id, { [columnId]: value });
-
-        if (result.error) {
-          toast({
-            variant: 'destructive',
-            title: '수정 실패',
-            description: result.error,
-          });
-          // 에러 발생 시 원래 값으로 되돌림
-          setTableData(initialData);
-          throw new Error(result.error);
-        }
-
-        toast({
-          title: '수정 완료',
-          description: '회사 정보가 성공적으로 수정되었습니다.',
-        });
-
-        // 서버 데이터 새로고침
-        router.refresh();
-      } catch (error) {
-        throw error;
+  // createAction 래퍼: Partial<Company>를 Omit<Company, 'id' | ...>로 변환
+  const createCompanyWrapper = React.useCallback(
+    async (data: Partial<Company>) => {
+      if (!data.name) {
+        return { error: '회사명은 필수 입력 항목입니다.' };
       }
+      return await createCompany({
+        name: data.name,
+        business_number: data.business_number || null,
+        sort_order: data.sort_order || 0,
+      });
     },
-    [tableData, initialData, toast, router]
+    []
   );
 
-  // 선택된 행 삭제
-  const handleDeleteSelected = async () => {
+  // CRUD 액션 훅 사용
+  const { handleUpdateCell, handleDeleteSelected: deleteSelectedAction, handleSaveNewRow: saveNewRowAction } = useTableActions<
+    Company,
+    Omit<Company, 'id' | 'created_at' | 'updated_at'>
+  >({
+    tableData,
+    setTableData,
+    originalData: data,
+    updateAction: updateCompany,
+    deleteAction: deleteCompany,
+    createAction: createCompanyWrapper,
+    setIsDeleting,
+    setDeleteDialogOpen,
+    setIsSavingNewRow,
+  });
+
+  // 삭제 액션 래퍼 (rowSelection을 selectedIndices로 변환)
+  const handleDeleteSelected = React.useCallback(async () => {
     const selectedIndices = Object.keys(rowSelection).map(Number);
-    const selectedCompanies = selectedIndices.map((index) => tableData[index]).filter(Boolean);
-
-    if (selectedCompanies.length === 0) {
-      toast({
-        variant: 'destructive',
-        title: '선택 오류',
-        description: '삭제할 회사를 선택해주세요.',
-      });
-      return;
-    }
-
-    setIsDeleting(true);
-
-    try {
-      // 각 회사 삭제 요청
-      const results = await Promise.allSettled(
-        selectedCompanies.map((company) => deleteCompany(company.id))
-      );
-
-      // 실패한 요청 확인
-      const failures = results.filter((r) => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.error));
-      const successes = results.filter((r) => r.status === 'fulfilled' && r.value.success);
-
-      if (failures.length > 0) {
-        toast({
-          variant: 'destructive',
-          title: '일부 삭제 실패',
-          description: `${successes.length}개 삭제 성공, ${failures.length}개 실패`,
-        });
-      } else {
-        toast({
-          title: '삭제 완료',
-          description: `${selectedCompanies.length}개의 회사가 삭제되었습니다.`,
-        });
-      }
-
-      // 선택 초기화 및 새로고침
-      setRowSelection({});
-      router.refresh();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: '삭제 실패',
-        description: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
-      });
-    } finally {
-      setIsDeleting(false);
-      setDeleteDialogOpen(false);
-    }
-  };
+    await deleteSelectedAction(selectedIndices);
+    setRowSelection({}); // 삭제 후 선택 초기화
+  }, [rowSelection, deleteSelectedAction, setRowSelection]);
 
   // 회사 추가 (인라인 방식)
   const handleAddCompany = () => {
@@ -158,8 +96,8 @@ export function CompaniesTable({ data: initialData }: CompaniesTableProps) {
     const newRow: Partial<Company> = {
       id: tempId,
       name: '',
-      business_number: '',
-      sort_order: tableData.length + 1,
+      business_number: null,
+      sort_order: (tableData.length + 1) * 10,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -171,69 +109,50 @@ export function CompaniesTable({ data: initialData }: CompaniesTableProps) {
   const handleUpdateNewRow = React.useCallback((field: string, value: unknown) => {
     if (!newRowData) return;
     setNewRowData({ ...newRowData, [field]: value });
-  }, [newRowData]);
+  }, [newRowData, setNewRowData]);
 
-  // 새 행 저장
-  const handleSaveNewRow = async () => {
+  // 새 행 저장 (useTableActions 훅 활용 + company-specific 로직)
+  const handleSaveNewRow = React.useCallback(async () => {
     if (!newRowData) return;
 
-    // 필수 필드 검증
-    if (!newRowData.name) {
-      toast({
-        variant: 'destructive',
-        title: '입력 오류',
-        description: '회사명은 필수 입력 항목입니다.',
-      });
-      return;
-    }
-
-    setIsSavingNewRow(true);
-
-    try {
-      // createCompany API 호출
-      const result = await createCompany({
-        name: newRowData.name!,
-        business_number: newRowData.business_number || null,
-        sort_order: newRowData.sort_order || tableData.length + 1,
-      });
-
-      if (result.error) {
-        toast({
-          variant: 'destructive',
-          title: '회사 추가 실패',
-          description: result.error,
-        });
-        return;
+    // Company-specific validation
+    const validate = (data: Record<string, unknown>) => {
+      if (!data.name) {
+        return { error: '회사명은 필수 입력 항목입니다.' };
       }
+      return true;
+    };
 
+    // useTableActions의 saveNewRowAction 호출
+    const preparedData = {
+      name: newRowData.name!,
+      business_number: newRowData.business_number || null,
+      sort_order: newRowData.sort_order || (tableData.length + 1) * 10,
+    };
+
+    const result = await saveNewRowAction(preparedData, validate);
+
+    if (result.success) {
+      // 성공 시 회사명 포함 메시지로 덮어쓰기
       toast({
         title: '회사 추가 완료',
         description: `${newRowData.name}이(가) 추가되었습니다.`,
       });
-
-      // 새 행 초기화 및 새로고침
       setNewRowData(null);
-      router.refresh();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: '회사 추가 실패',
-        description: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
-      });
-    } finally {
-      setIsSavingNewRow(false);
     }
-  };
+  }, [newRowData, saveNewRowAction, toast, setNewRowData, tableData.length]);
 
   // 새 행 취소
-  const handleCancelNewRow = () => {
+  const handleCancelNewRow = React.useCallback(() => {
     setNewRowData(null);
-  };
+  }, [setNewRowData]);
 
   // ESC 키로 신규 회사 추가 취소
   React.useEffect(() => {
+    if (!newRowData) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && newRowData) {
+      if (e.key === 'Escape') {
         handleCancelNewRow();
       }
     };
@@ -242,34 +161,27 @@ export function CompaniesTable({ data: initialData }: CompaniesTableProps) {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [newRowData]);
-
-  // 새 행이 있을 경우 테이블 데이터에 포함
-  const displayData = React.useMemo(() => {
-    if (newRowData) {
-      return [newRowData as Company, ...tableData];
-    }
-    return tableData;
-  }, [newRowData, tableData]);
+  }, [newRowData, handleCancelNewRow]);
 
   // 컬럼 정의
   const columns = React.useMemo(
     () =>
-      createColumns({
+      createCompanyColumns({
         handleUpdateCell,
         handleUpdateNewRow,
       }),
     [handleUpdateCell, handleUpdateNewRow]
   );
 
-  // 선택된 행 개수
-  const selectedCount = Object.keys(rowSelection).length;
-
   // Excel 내보내기 컬럼 정의
   const exportColumns = React.useMemo<ExportColumn<Company>[]>(
     () => [
       { key: 'name', header: '회사명' },
-      { key: 'business_number', header: '사업자등록번호', format: (value) => formatBusinessNumber(value as string) },
+      {
+        key: 'business_number',
+        header: '사업자번호',
+        format: (value) => typeof value === 'string' && value ? value.replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3') : '',
+      },
       { key: 'sort_order', header: '정렬순서' },
     ],
     []
@@ -279,7 +191,13 @@ export function CompaniesTable({ data: initialData }: CompaniesTableProps) {
   const printColumns = React.useMemo<PrintColumn<Company>[]>(
     () => [
       { key: 'name', header: '회사명', width: '200px' },
-      { key: 'business_number', header: '사업자등록번호', width: '150px', align: 'center', format: (value) => formatBusinessNumber(value as string) },
+      {
+        key: 'business_number',
+        header: '사업자번호',
+        width: '150px',
+        align: 'center',
+        format: (value) => <>{typeof value === 'string' && value ? value.replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3') : ''}</>,
+      },
       { key: 'sort_order', header: '정렬순서', width: '100px', align: 'center' },
     ],
     []
@@ -296,6 +214,11 @@ export function CompaniesTable({ data: initialData }: CompaniesTableProps) {
         enableRowSelection
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
+        enableFuzzyFilter={true}
+        enableColumnResizing={true}
+        columnResizeMode="onChange"
+        enablePageSizeSelection={true}
+        enablePageJump={true}
         toolbar={
           <CrudTableToolbar
             isAddingNew={!!newRowData}

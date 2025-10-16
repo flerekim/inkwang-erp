@@ -21,26 +21,30 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarPWAInstall } from '@/components/sidebar-pwa-install';
 import { SidebarPWAUpdate } from '@/components/sidebar-pwa-update';
 import type { UserWithDetails } from '@/types';
+import type { Module, ModuleCode } from '@/lib/modules/types';
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  adminOnly?: boolean;
+  moduleCode?: ModuleCode; // DB의 모듈 코드와 매핑
   children?: NavItem[];
   badge?: number;
 }
 
-const navItems: NavItem[] = [
+// 모든 네비게이션 아이템 정의 (모듈 기반 필터링 전)
+const allNavItems: NavItem[] = [
   {
     title: '대시보드',
     href: '/',
     icon: LayoutDashboard,
+    // 대시보드는 모든 사용자 접근 가능
   },
   {
     title: '인광이에스',
     href: '/inkwang-es',
     icon: Building2,
+    moduleCode: 'inkwang-es', // 모듈 코드로 접근 제어
     children: [
       {
         title: '기초관리',
@@ -72,7 +76,7 @@ const navItems: NavItem[] = [
     title: '관리자',
     href: '/admin',
     icon: Settings,
-    adminOnly: true,
+    moduleCode: 'admin', // 모듈 코드로 접근 제어
     children: [
       {
         title: '사원관리',
@@ -112,17 +116,29 @@ const navItems: NavItem[] = [
 
 interface SidebarProps {
   user: UserWithDetails;
+  modules: Module[];
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function Sidebar({ user, isOpen, onClose }: SidebarProps) {
+export function Sidebar({ modules, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
-  // 관리자가 아니면 관리자 메뉴 필터링
-  const filteredNavItems = navItems.filter(
-    (item) => !item.adminOnly || user.role === 'admin'
-  );
+  // 사용자가 접근 가능한 모듈 코드 Set 생성 (빠른 조회)
+  const accessibleModuleCodes = React.useMemo(() => {
+    return new Set(modules.map((m) => m.code));
+  }, [modules]);
+
+  // 모듈 기반으로 네비게이션 아이템 필터링
+  const filteredNavItems = React.useMemo(() => {
+    return allNavItems.filter((item) => {
+      // moduleCode가 없으면 모든 사용자 접근 가능 (예: 대시보드)
+      if (!item.moduleCode) return true;
+
+      // moduleCode가 있으면 사용자의 모듈 목록에 있는지 확인
+      return accessibleModuleCodes.has(item.moduleCode);
+    });
+  }, [accessibleModuleCodes]);
 
   return (
     <>

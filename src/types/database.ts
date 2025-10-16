@@ -481,11 +481,200 @@ export type Database = {
           },
         ];
       };
+      modules: {
+        Row: {
+          id: string;
+          code: string;
+          name: string;
+          description: string | null;
+          icon: string | null;
+          href: string;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          code: string;
+          name: string;
+          description?: string | null;
+          icon?: string | null;
+          href: string;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          code?: string;
+          name?: string;
+          description?: string | null;
+          icon?: string | null;
+          href?: string;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      user_module_access: {
+        Row: {
+          id: string;
+          user_id: string;
+          module_id: string;
+          is_enabled: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          module_id: string;
+          is_enabled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          module_id?: string;
+          is_enabled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_module_access_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_module_access_module_id_fkey';
+            columns: ['module_id'];
+            isOneToOne: false;
+            referencedRelation: 'modules';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      module_pages: {
+        Row: {
+          id: string;
+          module_id: string;
+          code: string;
+          name: string;
+          description: string | null;
+          href: string;
+          icon: string | null;
+          parent_id: string | null;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          module_id: string;
+          code: string;
+          name: string;
+          description?: string | null;
+          href: string;
+          icon?: string | null;
+          parent_id?: string | null;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          module_id?: string;
+          code?: string;
+          name?: string;
+          description?: string | null;
+          href?: string;
+          icon?: string | null;
+          parent_id?: string | null;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'module_pages_module_id_fkey';
+            columns: ['module_id'];
+            isOneToOne: false;
+            referencedRelation: 'modules';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'module_pages_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'module_pages';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      user_page_access: {
+        Row: {
+          id: string;
+          user_id: string;
+          page_id: string;
+          is_enabled: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          page_id: string;
+          is_enabled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          page_id?: string;
+          is_enabled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_page_access_page_id_fkey';
+            columns: ['page_id'];
+            isOneToOne: false;
+            referencedRelation: 'module_pages';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     Views: {};
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    Functions: {};
+    Functions: {
+      has_module_access: {
+        Args: {
+          module_code: string;
+        };
+        Returns: boolean;
+      };
+      has_page_access: {
+        Args: {
+          page_code: string;
+          module_code?: string;
+        };
+        Returns: boolean;
+      };
+    };
     Enums: {
       user_role: 'admin' | 'user';
       employment_status: 'active' | 'inactive';

@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { type RowSelectionState } from '@tanstack/react-table';
 import { DataTable } from '@/components/common/data-table';
 import { CrudTableToolbar } from '@/components/common/crud-table-toolbar';
 import { DeleteConfirmDialog } from '@/components/dialogs/delete-confirm-dialog';
@@ -10,7 +9,8 @@ import { PrintTable, type PrintColumn } from '@/components/common/print-table';
 import { createColumns } from './columns';
 import { updateCustomer, deleteCustomer, createCustomer } from '@/actions/customers';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { useTableState } from '@/hooks/use-table-state';
+import { useTableActions } from '@/hooks/use-table-actions';
 import { formatBusinessNumber } from '@/lib/utils';
 import type { Customer } from '@/types';
 
@@ -20,72 +20,69 @@ interface CustomersTableProps {
 
 export function CustomersTable({ data: initialData }: CustomersTableProps) {
   const { toast } = useToast();
-  const router = useRouter();
-  const [tableData, setTableData] = React.useState<Customer[]>(initialData);
-  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
-  const [isDeleting, setIsDeleting] = React.useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [newRowData, setNewRowData] = React.useState<Partial<Customer> | null>(null);
-  const [isSavingNewRow, setIsSavingNewRow] = React.useState(false);
 
-  React.useEffect(() => {
-    setTableData(initialData);
-  }, [initialData]);
+  // 테이블 상태 관리 (useTableState Hook 사용)
+  const {
+    tableData,
+    setTableData,
+    rowSelection,
+    setRowSelection,
+    isDeleting,
+    setIsDeleting,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    newRowData,
+    setNewRowData,
+    isSavingNewRow,
+    setIsSavingNewRow,
+    selectedCount,
+    displayData,
+  } = useTableState<Customer>(initialData);
 
-  const handleUpdateCell = React.useCallback(
-    async (rowIndex: number, columnId: string, value: string | number) => {
-      const customer = tableData[rowIndex];
-      if (!customer) return;
-
-      setTableData((old) =>
-        old.map((row, index) => (index === rowIndex ? { ...row, [columnId]: value } : row))
-      );
-
-      try {
-        const result = await updateCustomer(customer.id, { [columnId]: value });
-        if (result.error) {
-          toast({ variant: 'destructive', title: '수정 실패', description: result.error });
-          setTableData(initialData);
-          throw new Error(result.error);
-        }
-        toast({ title: '수정 완료', description: '고객 정보가 수정되었습니다.' });
-        router.refresh();
-      } catch (error) {
-        throw error;
+  // createAction 래퍼: Partial<Customer>를 Omit<Customer, ...>로 변환
+  const createCustomerWrapper = React.useCallback(
+    async (data: Partial<Customer>) => {
+      if (!data.name) {
+        return { error: '고객명은 필수 입력 항목입니다.' };
       }
+      return await createCustomer({
+        name: data.name,
+        customer_type: data.customer_type || '발주처',
+        status: data.status || '거래중',
+        business_number: data.business_number || null,
+        representative_name: data.representative_name || null,
+        phone: data.phone || null,
+        email: data.email || null,
+        manager_name: data.manager_name || null,
+        notes: data.notes || null,
+        sort_order: data.sort_order || 0,
+      });
     },
-    [tableData, initialData, toast, router]
+    []
   );
 
-  const handleDeleteSelected = async () => {
+  // CRUD 액션 훅 사용
+  const { handleUpdateCell, handleDeleteSelected: deleteSelectedAction, handleSaveNewRow: saveNewRowAction } = useTableActions<
+    Customer,
+    Omit<Customer, 'id' | 'created_at' | 'updated_at'>
+  >({
+    tableData,
+    setTableData,
+    originalData: initialData,
+    updateAction: updateCustomer,
+    deleteAction: deleteCustomer,
+    createAction: createCustomerWrapper,
+    setIsDeleting,
+    setDeleteDialogOpen,
+    setIsSavingNewRow,
+  });
+
+  // 삭제 액션 래퍼 (rowSelection을 selectedIndices로 변환)
+  const handleDeleteSelected = React.useCallback(async () => {
     const selectedIndices = Object.keys(rowSelection).map(Number);
-    const selectedCustomers = selectedIndices.map((index) => tableData[index]).filter(Boolean);
-
-    if (selectedCustomers.length === 0) {
-      toast({ variant: 'destructive', title: '선택 오류', description: '삭제할 고객을 선택해주세요.' });
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      const results = await Promise.allSettled(selectedCustomers.map((customer) => deleteCustomer(customer.id)));
-      const failures = results.filter((r) => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.error));
-      const successes = results.filter((r) => r.status === 'fulfilled' && r.value.success);
-
-      if (failures.length > 0) {
-        toast({ variant: 'destructive', title: '일부 삭제 실패', description: `${successes.length}개 삭제 성공, ${failures.length}개 실패` });
-      } else {
-        toast({ title: '삭제 완료', description: `${selectedCustomers.length}개의 고객이 삭제되었습니다.` });
-      }
-      setRowSelection({});
-      router.refresh();
-    } catch (error) {
-      toast({ variant: 'destructive', title: '삭제 실패', description: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' });
-    } finally {
-      setIsDeleting(false);
-      setDeleteDialogOpen(false);
-    }
-  };
+    await deleteSelectedAction(selectedIndices);
+    setRowSelection({}); // 삭제 후 선택 초기화
+  }, [rowSelection, deleteSelectedAction, setRowSelection]);
 
   const handleAddCustomer = () => {
     if (newRowData) {
@@ -112,57 +109,61 @@ export function CustomersTable({ data: initialData }: CustomersTableProps) {
   const handleUpdateNewRow = React.useCallback((field: string, value: unknown) => {
     if (!newRowData) return;
     setNewRowData({ ...newRowData, [field]: value });
-  }, [newRowData]);
+  }, [newRowData, setNewRowData]);
 
-  const handleSaveNewRow = async () => {
-    if (!newRowData || !newRowData.name) {
-      toast({ variant: 'destructive', title: '입력 오류', description: '고객명은 필수 입력 항목입니다.' });
-      return;
-    }
+  // 새 행 저장 (useTableActions 훅 활용 + customer-specific 로직)
+  const handleSaveNewRow = React.useCallback(async () => {
+    if (!newRowData) return;
 
-    setIsSavingNewRow(true);
-    try {
-      const result = await createCustomer({
-        name: newRowData.name!,
-        customer_type: newRowData.customer_type || '발주처',
-        status: newRowData.status || '거래중',
-        business_number: newRowData.business_number || '',
-        representative_name: newRowData.representative_name || '',
-        phone: newRowData.phone || '',
-        email: newRowData.email || '',
-        manager_name: newRowData.manager_name || '',
-        notes: newRowData.notes || '',
-        sort_order: newRowData.sort_order || tableData.length + 1,
-      });
-
-      if (result.error) {
-        toast({ variant: 'destructive', title: '고객 추가 실패', description: result.error });
-        return;
+    // Customer-specific validation
+    const validate = (data: Record<string, unknown>) => {
+      if (!data.name) {
+        return { error: '고객명은 필수 입력 항목입니다.' };
       }
+      return true;
+    };
 
-      toast({ title: '고객 추가 완료', description: `${newRowData.name} 고객이 추가되었습니다.` });
+    // useTableActions의 saveNewRowAction 호출
+    const preparedData = {
+      name: newRowData.name!,
+      customer_type: newRowData.customer_type || '발주처',
+      status: newRowData.status || '거래중',
+      business_number: newRowData.business_number || '',
+      representative_name: newRowData.representative_name || '',
+      phone: newRowData.phone || '',
+      email: newRowData.email || '',
+      manager_name: newRowData.manager_name || '',
+      notes: newRowData.notes || '',
+      sort_order: newRowData.sort_order || tableData.length + 1,
+    };
+
+    const result = await saveNewRowAction(preparedData, validate);
+
+    if (result.success) {
+      // 성공 시 고객명 포함 메시지로 덮어쓰기
+      toast({
+        title: '고객 추가 완료',
+        description: `${newRowData.name} 고객이 추가되었습니다.`,
+      });
       setNewRowData(null);
-      router.refresh();
-    } catch (error) {
-      toast({ variant: 'destructive', title: '고객 추가 실패', description: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다' });
-    } finally {
-      setIsSavingNewRow(false);
     }
-  };
+  }, [newRowData, saveNewRowAction, toast, setNewRowData, tableData.length]);
 
-  const handleCancelNewRow = () => setNewRowData(null);
+  const handleCancelNewRow = React.useCallback(() => {
+    setNewRowData(null);
+  }, [setNewRowData]);
 
+  // ESC 키로 신규 고객 추가 취소
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && newRowData) handleCancelNewRow();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [newRowData]);
+  }, [newRowData, handleCancelNewRow]);
 
-  const displayData = React.useMemo(() => (newRowData ? [newRowData as Customer, ...tableData] : tableData), [newRowData, tableData]);
+  // 컬럼 정의
   const columns = React.useMemo(() => createColumns({ handleUpdateCell, handleUpdateNewRow }), [handleUpdateCell, handleUpdateNewRow]);
-  const selectedCount = Object.keys(rowSelection).length;
 
   const exportColumns = React.useMemo<ExportColumn<Customer>[]>(() => [
     { key: 'name', header: '고객명' },
@@ -196,6 +197,11 @@ export function CustomersTable({ data: initialData }: CustomersTableProps) {
         enableRowSelection
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
+        enableFuzzyFilter={true}
+        enableColumnResizing={true}
+        columnResizeMode="onChange"
+        enablePageSizeSelection={true}
+        enablePageJump={true}
         toolbar={
           <CrudTableToolbar
             isAddingNew={!!newRowData}

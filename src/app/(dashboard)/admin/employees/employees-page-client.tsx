@@ -5,13 +5,14 @@ import { Users, UserCheck, UserX, Building } from 'lucide-react';
 import { EmployeesTableNew } from './employees-table';
 import { PageHeader } from '@/components/layout/page-header';
 import { StatsCard } from '@/components/ui/stats-card';
-import type { UserWithDetails } from '@/types';
+import type { UserWithDetails, User } from '@/types';
 
 interface EmployeesPageClientNewProps {
   employees: UserWithDetails[];
+  currentUser: User;
 }
 
-export function EmployeesPageClientNew({ employees }: EmployeesPageClientNewProps) {
+export function EmployeesPageClientNew({ employees, currentUser }: EmployeesPageClientNewProps) {
   // 통계 계산
   const stats = React.useMemo(() => {
     const total = employees.length;
@@ -58,7 +59,7 @@ export function EmployeesPageClientNew({ employees }: EmployeesPageClientNewProp
       </div>
 
       {/* 사원 테이블 */}
-      <EmployeesTableNew data={employees} />
+      <EmployeesTableNew data={employees} currentUser={currentUser} />
     </div>
   );
 }

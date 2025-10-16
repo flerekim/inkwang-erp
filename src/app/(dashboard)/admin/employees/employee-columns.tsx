@@ -8,12 +8,14 @@ import { DataTableColumnHeader } from '@/components/common/data-table';
 import { EditableCell } from '@/components/common/editable-cell';
 import { EditableSelectCell } from '@/components/common/editable-select-cell';
 import { EditableDateCell } from '@/components/common/editable-date-cell';
-import type { UserWithDetails, Department, Position, Company } from '@/types';
+import { EmployeeActions } from './employee-actions';
+import type { UserWithDetails, Department, Position, Company, User } from '@/types';
 
 interface EmployeeColumnsProps {
   companies: Company[];
   departments: Department[];
   positions: Position[];
+  currentUser: User;
   handleUpdateCell: (rowIndex: number, columnId: string, value: string) => Promise<void>;
   handleUpdateNewRow: (field: string, value: unknown) => void;
 }
@@ -25,6 +27,7 @@ export function createEmployeeColumns({
   companies,
   departments,
   positions,
+  currentUser,
   handleUpdateCell,
   handleUpdateNewRow,
 }: EmployeeColumnsProps): ColumnDef<UserWithDetails>[] {
@@ -265,6 +268,27 @@ export function createEmployeeColumns({
         );
       },
       enableSorting: false,
+    },
+    // Actions 컬럼 (모듈 권한 관리, 삭제)
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => {
+        const isNewRow = row.original.id?.startsWith('temp-');
+        if (isNewRow) return null; // 새 행은 액션 버튼 없음
+
+        return (
+          <EmployeeActions
+            employee={row.original}
+            currentUser={currentUser}
+          />
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+      size: 60,
+      minSize: 60,
+      maxSize: 60,
     },
   ];
 }

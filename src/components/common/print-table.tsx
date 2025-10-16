@@ -12,7 +12,7 @@ import {
 import { Printer, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export interface PrintColumn<T = any> {
+export interface PrintColumn<T = Record<string, unknown>> {
   /** 데이터 필드명 */
   key: keyof T | string;
   /** 테이블 헤더에 표시될 이름 */
@@ -25,7 +25,7 @@ export interface PrintColumn<T = any> {
   align?: 'left' | 'center' | 'right';
 }
 
-export interface PrintTableProps<T = any> {
+export interface PrintTableProps<T = Record<string, unknown>> {
   /** 인쇄할 데이터 배열 */
   data: T[];
   /** 테이블 컬럼 정의 */
@@ -78,7 +78,7 @@ export interface PrintTableProps<T = any> {
  * />
  * ```
  */
-export function PrintTable<T = any>({
+export function PrintTable<T = Record<string, unknown>>({
   data,
   columns,
   title,

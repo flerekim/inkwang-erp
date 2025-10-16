@@ -6,7 +6,7 @@ import { FileDown } from 'lucide-react';
 import { utils, writeFile } from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
 
-export interface ExportColumn<T = any> {
+export interface ExportColumn<T = Record<string, unknown>> {
   /** 데이터 필드명 */
   key: keyof T | string;
   /** Excel 헤더에 표시될 이름 */
@@ -15,7 +15,7 @@ export interface ExportColumn<T = any> {
   format?: (value: unknown, row: T) => string | number;
 }
 
-export interface ExportToExcelProps<T = any> {
+export interface ExportToExcelProps<T = Record<string, unknown>> {
   /** 내보낼 데이터 배열 */
   data: T[];
   /** Excel 컬럼 정의 */
@@ -63,7 +63,7 @@ export interface ExportToExcelProps<T = any> {
  * />
  * ```
  */
-export function ExportToExcel<T = any>({
+export function ExportToExcel<T = Record<string, unknown>>({
   data,
   columns,
   filename = 'export.xlsx',

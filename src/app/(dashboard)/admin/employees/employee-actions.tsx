@@ -1,14 +1,16 @@
 'use client';
 
-import { MoreHorizontal, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Trash2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DeleteConfirmDialog } from '@/components/dialogs/delete-confirm-dialog';
+import { ModuleAccessDialog } from '@/components/admin/module-access-dialog';
 import { deleteEmployee } from '@/actions/employees';
 import { useToast } from '@/hooks/use-toast';
 import type { UserWithDetails, User } from '@/types';
@@ -24,6 +26,7 @@ export function EmployeeActions({
   currentUser,
 }: EmployeeActionsProps) {
   const [showDeleteAlert, setShowDeleteAlert] = React.useState(false);
+  const [showModuleDialog, setShowModuleDialog] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const { toast } = useToast();
 
@@ -65,6 +68,11 @@ export function EmployeeActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setShowModuleDialog(true)}>
+            <Shield className="mr-2 h-4 w-4" />
+            모듈 권한 관리
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-destructive focus:text-destructive"
             onClick={() => setShowDeleteAlert(true)}
@@ -74,6 +82,12 @@ export function EmployeeActions({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <ModuleAccessDialog
+        user={employee}
+        open={showModuleDialog}
+        onOpenChange={setShowModuleDialog}
+      />
 
       <DeleteConfirmDialog
         open={showDeleteAlert}
