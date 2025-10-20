@@ -25,6 +25,26 @@ interface AttachmentDialogProps {
 }
 
 /**
+ * 타입 가드: unknown을 AttachmentMetadata 배열로 검증
+ */
+function isAttachmentMetadataArray(value: unknown): value is AttachmentMetadata[] {
+  if (!Array.isArray(value)) return false;
+  if (value.length === 0) return true; // 빈 배열은 유효
+
+  const firstItem = value[0];
+  return (
+    typeof firstItem === 'object' &&
+    firstItem !== null &&
+    'name' in firstItem &&
+    'path' in firstItem &&
+    'size' in firstItem &&
+    typeof firstItem.name === 'string' &&
+    typeof firstItem.path === 'string' &&
+    typeof firstItem.size === 'number'
+  );
+}
+
+/**
  * 첨부파일 관리 Dialog
  *
  * 기능:
@@ -44,20 +64,16 @@ export function AttachmentDialog({ open, onOpenChange, order, onAttachmentsChang
 
   // order가 변경되면 attachments 동기화
   React.useEffect(() => {
-    if (order) {
-      // order.attachments는 any 타입이므로 안전하게 변환
-      const orderAttachments = order.attachments;
-      if (Array.isArray(orderAttachments) && orderAttachments.length > 0) {
-        // 첫 번째 요소가 객체이고 필요한 속성이 있으면 AttachmentMetadata 배열로 간주
-        const firstItem = orderAttachments[0];
-        if (typeof firstItem === 'object' && firstItem !== null && 'name' in firstItem && 'path' in firstItem) {
-          setAttachments(orderAttachments as unknown as AttachmentMetadata[]);
-        } else {
-          setAttachments([]);
-        }
+    if (order?.attachments) {
+      // 타입 가드를 사용하여 안전하게 변환
+      if (isAttachmentMetadataArray(order.attachments)) {
+        setAttachments(order.attachments);
       } else {
+        console.warn('Invalid attachments format:', order.attachments);
         setAttachments([]);
       }
+    } else {
+      setAttachments([]);
     }
   }, [order]);
 
