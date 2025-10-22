@@ -28,6 +28,7 @@ import {
 interface Option {
   id: string;
   name: string;
+  renderItem?: React.ReactNode; // 커스텀 렌더링 옵션
 }
 
 interface EditableSelectCellProps {
@@ -41,6 +42,9 @@ interface EditableSelectCellProps {
   displayValue?: React.ReactNode;
   searchPlaceholder?: string;
   emptyText?: string;
+  onAdvancedSearch?: () => void; // 고급 검색 버튼 클릭 핸들러
+  advancedSearchLabel?: string; // 고급 검색 버튼 텍스트
+  className?: string; // 추가 클래스명
 }
 
 const EditableSelectCellComponent = ({
@@ -54,6 +58,9 @@ const EditableSelectCellComponent = ({
   displayValue,
   searchPlaceholder = '검색...',
   emptyText = '결과가 없습니다.',
+  onAdvancedSearch,
+  advancedSearchLabel = '🔍 고급 검색',
+  className,
 }: EditableSelectCellProps) => {
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -184,7 +191,7 @@ const EditableSelectCellComponent = ({
               variant="outline"
               role="combobox"
               aria-expanded={open}
-              className="h-8 w-full justify-between"
+              className={cn("h-8 w-full justify-between", className)}
               disabled={isSaving}
               onKeyDown={handleKeyDown}
             >
@@ -192,7 +199,7 @@ const EditableSelectCellComponent = ({
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0" align="start">
+          <PopoverContent className="w-[400px] p-0" align="start">
             <Command>
               <CommandInput
                 placeholder={searchPlaceholder}
@@ -217,17 +224,38 @@ const EditableSelectCellComponent = ({
                       key={option.id}
                       value={option.name}
                       onSelect={() => handleSelect(option.id)}
+                      className={option.renderItem ? 'items-start py-3' : ''}
                     >
                       <Check
                         className={cn(
-                          'mr-2 h-4 w-4',
-                          value === option.id ? 'opacity-100' : 'opacity-0'
+                          'mr-2 h-4 w-4 flex-shrink-0',
+                          value === option.id ? 'opacity-100' : 'opacity-0',
+                          option.renderItem && 'mt-1'
                         )}
                       />
-                      {option.name}
+                      {option.renderItem || option.name}
                     </CommandItem>
                   ))}
                 </CommandGroup>
+                {/* 고급 검색 버튼 */}
+                {onAdvancedSearch && (
+                  <div className="border-t p-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setOpen(false);
+                        setIsEditing(false);
+                        onAdvancedSearch();
+                      }}
+                    >
+                      {advancedSearchLabel}
+                    </Button>
+                  </div>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
@@ -252,7 +280,7 @@ const EditableSelectCellComponent = ({
       >
         <SelectTrigger
           ref={triggerRef}
-          className="h-8 w-full"
+          className={cn("h-8 w-full", className)}
           onKeyDown={handleKeyDown}
         >
           <SelectValue placeholder={placeholder} />

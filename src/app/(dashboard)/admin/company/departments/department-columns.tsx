@@ -47,9 +47,9 @@ export function createDepartmentColumns({
       },
       enableSorting: false,
       enableHiding: false,
-      size: 20,
-      minSize: 20,
-      maxSize: 20,
+      size: 60,
+      minSize: 60,
+      maxSize: 60,
     },
     {
       accessorKey: 'name',
@@ -67,6 +67,9 @@ export function createDepartmentColumns({
         );
       },
       enableSorting: true,
+      size: 400,
+      minSize: 300,
+      maxSize: 600,
     },
     {
       accessorKey: 'sort_order',
@@ -85,6 +88,9 @@ export function createDepartmentColumns({
         );
       },
       enableSorting: true,
+      size: 120,
+      minSize: 100,
+      maxSize: 150,
     },
   ];
 }

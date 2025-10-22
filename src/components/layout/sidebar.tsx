@@ -15,6 +15,9 @@ import {
   Database,
   UsersRound,
   FileText,
+  DollarSign,
+  BookOpen,
+  Library,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -68,7 +71,52 @@ const allNavItems: NavItem[] = [
             href: '/inkwang-es/sales/orders',
             icon: FileText,
           },
+          {
+            title: '실적관리',
+            href: '/inkwang-es/sales/performances',
+            icon: FileText,
+          },
         ],
+      },
+      {
+        title: '재무관리',
+        href: '/inkwang-es/finance',
+        icon: DollarSign,
+        children: [
+          {
+            title: '청구관리',
+            href: '/inkwang-es/finance/billings',
+            icon: FileText,
+          },
+          {
+            title: '수금관리',
+            href: '/inkwang-es/finance/collections',
+            icon: DollarSign,
+          },
+          {
+            title: '채권관리',
+            href: '/inkwang-es/finance/receivables',
+            icon: DollarSign,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    title: '조직문화',
+    href: '/culture',
+    icon: BookOpen,
+    moduleCode: 'culture', // 모듈 코드로 접근 제어
+    children: [
+      {
+        title: '독서관리',
+        href: '/culture/reading',
+        icon: BookOpen,
+      },
+      {
+        title: '도서목록',
+        href: '/culture/reading/books',
+        icon: Library,
       },
     ],
   },
@@ -163,11 +211,15 @@ export function Sidebar({ modules, isOpen, onClose }: SidebarProps) {
         <ScrollArea className="flex-1 py-6">
           {/* MENU 섹션 */}
           <div className="px-4 mb-6">
-            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 overflow-hidden whitespace-nowrap">
-              MENU
-            </h2>
+            <div className="flex items-center gap-3 mb-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/30 to-primary/60" />
+              <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                MENU
+              </h2>
+              <div className="h-px flex-1 bg-gradient-to-r from-primary/60 via-primary/30 to-transparent" />
+            </div>
             <div className="space-y-1">
-              {filteredNavItems.slice(0, 5).map((item) => (
+              {filteredNavItems.map((item) => (
                 <NavItemComponent
                   key={item.href}
                   item={item}
@@ -180,18 +232,14 @@ export function Sidebar({ modules, isOpen, onClose }: SidebarProps) {
 
           {/* GENERAL 섹션 */}
           <div className="px-4 mb-6">
-            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 overflow-hidden whitespace-nowrap">
-              GENERAL
-            </h2>
+            <div className="flex items-center gap-3 mb-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/30 to-primary/60" />
+              <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                GENERAL
+              </h2>
+              <div className="h-px flex-1 bg-gradient-to-r from-primary/60 via-primary/30 to-transparent" />
+            </div>
             <div className="space-y-1">
-              {filteredNavItems.slice(5).map((item) => (
-                <NavItemComponent
-                  key={item.href}
-                  item={item}
-                  pathname={pathname}
-                  onClose={onClose}
-                />
-              ))}
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-3 h-10 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
@@ -269,13 +317,19 @@ function NavItemComponent({
         <Button
           variant="ghost"
           className={cn(
-            'w-full justify-start gap-3 h-10 text-sm font-medium transition-colors',
-            isActive && 'bg-sidebar-primary text-sidebar-primary-foreground',
-            !isActive && 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+            'relative w-full justify-start gap-3 h-10 text-sm font-medium transition-all duration-200 ease-out',
+            // 활성 상태: primary 배경 + 글로우 효과 + shimmer
+            isActive && 'bg-sidebar-primary text-sidebar-primary-foreground glow-primary shimmer',
+            // 비활성 상태: 호버 시 scale + 글로우
+            !isActive && 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:scale-[1.02] hover:glow-accent',
             depth > 0 && 'pl-10'
           )}
           onClick={() => setIsOpen(!isOpen)}
         >
+          {/* 활성 메뉴 왼쪽 그라디언트 바 */}
+          {isActive && (
+            <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-primary via-primary/90 to-primary rounded-r-full active-bar-glow" />
+          )}
           <Icon className="h-4 w-4 shrink-0" />
           <span className="flex-1 text-left opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
             {item.title}
@@ -319,14 +373,20 @@ function NavItemComponent({
     <Button
       variant="ghost"
       className={cn(
-        'w-full justify-start gap-3 h-10 text-sm font-medium transition-colors',
-        isActive && 'bg-sidebar-primary text-sidebar-primary-foreground',
-        !isActive && 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+        'relative w-full justify-start gap-3 h-10 text-sm font-medium transition-all duration-200 ease-out',
+        // 활성 상태: primary 배경 + 글로우 효과 + shimmer
+        isActive && 'bg-sidebar-primary text-sidebar-primary-foreground glow-primary shimmer',
+        // 비활성 상태: 호버 시 scale + 글로우
+        !isActive && 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:scale-[1.02] hover:glow-accent',
         depth > 0 && 'pl-10'
       )}
       asChild
     >
       <Link href={item.href} onClick={onClose}>
+        {/* 활성 메뉴 왼쪽 그라디언트 바 */}
+        {isActive && (
+          <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-primary via-primary/90 to-primary rounded-r-full active-bar-glow" />
+        )}
         <Icon className="h-4 w-4 shrink-0" />
         <span className="flex-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
           {item.title}

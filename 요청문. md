@@ -1,0 +1,4 @@
+/sc:document c:\dev\docs\inkwang-erp\docs\add_development\독서관리\독서관리_사용자_요구사항.md & 'c:\dev\docs\inkwang-erp\docs\add_development\독서관리\알라딘 Open API      
+  매뉴얼.md' 두 가지 문서를 꼼꼼하게 읽고 분석한 후 주니어 개발자도 보고 따라만 하면  구현할 수 있을 만큼 상세한 prd를 작성해줘. prd 작성전에 @CLAUDE.md 를 꼼꼼히 읽고        
+  분석해서 프로젝트의 방향성과 주의사항등을 확인하고 @src\components\common\ 폴더의 코드들도 꼼꼼하게 분석해서 공통 컴포넌트를 최대한 활용해서 중복된 코드를 줄이고 일관성을   
+  유지하자. 필요하다면 다른 페이지의 코드들을 참고해봐도 좋아

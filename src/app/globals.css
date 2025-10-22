@@ -209,3 +209,176 @@ html {
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
+
+/* ========================================
+   테이블 UI 개선 애니메이션 (2025)
+   ======================================== */
+
+/* Shimmer 효과 (로딩, 선택 애니메이션) */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* 다크모드 Shimmer 강화 */
+.dark .shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+}
+
+/* 성능 최적화: GPU 가속 */
+.shimmer::after {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* 접근성: 애니메이션 감소 모드 지원 */
+@media (prefers-reduced-motion: reduce) {
+  .shimmer::after {
+    animation: none;
+  }
+
+  .glow-primary,
+  .glow-accent,
+  .active-bar-glow {
+    transition: none;
+  }
+}
+
+/* Gradient Slide 효과 (컬럼 리사이저) */
+@keyframes gradient-slide {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 0% 100%;
+  }
+}
+
+/* ========================================
+   Glassmorphism 시스템 (2025)
+   ======================================== */
+
+/* Glassmorphism 기본 변수 */
+:root {
+  --glass-bg: oklch(1 0 0 / 5%);
+  --glass-border: oklch(1 0 0 / 10%);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+
+  /* Glassmorphism 강화 변수 */
+  --glass-bg-strong: oklch(1 0 0 / 8%);
+  --glass-blur: 12px;
+  --glass-blur-strong: 20px;
+
+  /* Depth Shadow 시스템 (4단계) */
+  --depth-1: 0 2px 8px rgba(31, 38, 135, 0.08);
+  --depth-2: 0 4px 16px rgba(31, 38, 135, 0.12);
+  --depth-3: 0 8px 24px rgba(31, 38, 135, 0.16);
+  --depth-4: 0 12px 32px rgba(31, 38, 135, 0.20);
+
+  /* Glow 효과 */
+  --glow-primary: 0 0 20px oklch(0.52 0.09 250 / 30%);
+  --glow-accent: 0 0 16px oklch(0.89 0.02 250 / 40%);
+}
+
+.dark {
+  --glass-bg: oklch(0 0 0 / 20%);
+  --glass-border: oklch(1 0 0 / 5%);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+
+  /* Glassmorphism 강화 변수 (다크모드) */
+  --glass-bg-strong: oklch(0 0 0 / 30%);
+  --glass-blur: 16px;
+  --glass-blur-strong: 24px;
+
+  /* Depth Shadow 시스템 (다크모드, 4단계) */
+  --depth-1: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --depth-2: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --depth-3: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --depth-4: 0 12px 32px rgba(0, 0, 0, 0.6);
+
+  /* Glow 효과 (다크모드) */
+  --glow-primary: 0 0 24px oklch(0.58 0.10 250 / 40%);
+  --glow-accent: 0 0 20px oklch(0.35 0.02 250 / 50%);
+}
+
+/* Glassmorphism 유틸리티 클래스 */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur-strong));
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--depth-3);
+}
+
+/* Depth 유틸리티 */
+.depth-1 { box-shadow: var(--depth-1); }
+.depth-2 { box-shadow: var(--depth-2); }
+.depth-3 { box-shadow: var(--depth-3); }
+.depth-4 { box-shadow: var(--depth-4); }
+
+/* Glow 유틸리티 */
+.glow-primary { box-shadow: var(--glow-primary); }
+.glow-accent { box-shadow: var(--glow-accent); }
+
+/* 활성 메뉴 바 글로우 (라이트모드) */
+.active-bar-glow {
+  box-shadow: 0 0 8px rgba(63, 114, 175, 0.6);
+}
+
+/* 활성 메뉴 바 글로우 (다크모드) */
+.dark .active-bar-glow {
+  box-shadow: 0 0 12px rgba(88, 166, 255, 0.8);
+}
+
+/* 빈 상태 애니메이션 */
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}

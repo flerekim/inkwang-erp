@@ -47,9 +47,9 @@ export function createCompanyColumns({
       },
       enableSorting: false,
       enableHiding: false,
-      size: 20,
-      minSize: 20,
-      maxSize: 20,
+      size: 60,
+      minSize: 60,
+      maxSize: 60,
     },
     {
       accessorKey: 'name',
@@ -67,6 +67,9 @@ export function createCompanyColumns({
         );
       },
       enableSorting: true,
+      size: 300,
+      minSize: 200,
+      maxSize: 500,
     },
     {
       accessorKey: 'business_number',
@@ -86,6 +89,9 @@ export function createCompanyColumns({
         );
       },
       enableSorting: true,
+      size: 200,
+      minSize: 150,
+      maxSize: 300,
     },
     {
       accessorKey: 'sort_order',
@@ -104,6 +110,9 @@ export function createCompanyColumns({
         );
       },
       enableSorting: true,
+      size: 120,
+      minSize: 100,
+      maxSize: 150,
     },
   ];
 }

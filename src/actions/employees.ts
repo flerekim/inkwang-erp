@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { userInsertSchema, userUpdateSchema } from '@/lib/validations';
@@ -9,6 +9,11 @@ import type { UserUpdate, EmployeeFormData } from '@/types';
 
 /**
  * 사원 목록 조회
+ *
+ * 캐싱 전략:
+ * - Page 레벨에서 revalidate 설정 (page.tsx에서 export const revalidate = 60)
+ * - 태그 기반 재검증: revalidateTag('employees')로 수동 무효화
+ * - 생성/수정/삭제 시 자동으로 캐시 무효화
  */
 export async function getEmployees() {
   try {
@@ -18,22 +23,22 @@ export async function getEmployees() {
       .from('users')
       .select(
         `
-        id,
-        employee_number,
-        name,
-        email,
-        role,
-        employment_status,
-        hire_date,
-        department_id,
-        position_id,
-        company_id,
-        created_at,
-        updated_at,
-        department:departments(id, name),
-        position:positions(id, name),
-        company:companies(id, name, business_number)
-      `
+          id,
+          employee_number,
+          name,
+          email,
+          role,
+          employment_status,
+          hire_date,
+          department_id,
+          position_id,
+          company_id,
+          created_at,
+          updated_at,
+          department:departments(id, name),
+          position:positions(id, name),
+          company:companies(id, name, business_number)
+        `
       )
       .order('created_at', { ascending: false });
 
@@ -88,6 +93,7 @@ export const createEmployee = withAuth(
       }
 
       revalidatePath('/admin/employees');
+      revalidateTag('employees'); // 캐시 무효화
       return { data: authData.user, error: null };
     } catch (error) {
       return {
@@ -168,6 +174,7 @@ export async function updateEmployee(
     }
 
     revalidatePath('/admin/employees');
+    revalidateTag('employees'); // 캐시 무효화
     return { success: true };
   } catch (error) {
     return {
@@ -213,6 +220,7 @@ export async function deleteEmployee(id: string) {
     }
 
     revalidatePath('/admin/employees');
+    revalidateTag('employees'); // 캐시 무효화
     return { success: true };
   } catch (error) {
     return {

@@ -277,6 +277,9 @@ export const orderInsertSchema = z.object({
     .refine((val) => typeof val === 'number' && val <= 999999999999.99, {
       message: '계약금액이 너무 큽니다 (최대: 999,999,999,999.99원)',
     }),
+  contract_unit: z.enum(['ton', 'unit', 'm3'], {
+    message: '단위를 선택해주세요',
+  }).nullable().optional(),
 
   // 관계형 데이터
   customer_id: z.string().uuid('올바른 고객을 선택해주세요'),
@@ -285,7 +288,7 @@ export const orderInsertSchema = z.object({
   parent_order_id: z.string().uuid().nullable().optional(),
 
   // 기타
-  export_type: z.enum(['on_site', 'export'], {
+  export_type: z.enum(['on_site', 'export', 'new_business'], {
     message: '반출여부를 선택해주세요',
   }),
   notes: z.string().nullable().optional(),
@@ -322,3 +325,141 @@ export const orderInsertSchemaRefined = orderInsertSchema.refine(
     path: ['parent_order_id'],
   }
 );
+
+// ============================================
+// 실적관리 검증 스키마
+// ============================================
+
+/**
+ * 실적 생성 스키마
+ */
+export const performanceInsertSchema = z
+  .object({
+    // 실적 구분 (예정/확정)
+    performance_type: z.enum(['planned', 'confirmed'], {
+      message: '올바른 실적 구분을 선택해주세요',
+    }),
+
+    // 계약번호 (수주관리에서 신규계약만)
+    order_id: z.string().uuid('올바른 계약을 선택해주세요'),
+
+    // 실적일 (YYYY-MM-DD)
+    performance_date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, '올바른 날짜 형식을 입력해주세요 (YYYY-MM-DD)'),
+
+    // 단위 (Ton, 대, m³)
+    unit: z.enum(['ton', 'unit', 'm3'], {
+      message: '올바른 단위를 선택해주세요',
+    }),
+
+    // 수량 (소수점 둘째자리까지, 천단위 구분기호 허용)
+    quantity: z.union([
+      z.number().nonnegative('수량은 0 이상이어야 합니다'),
+      z
+        .string()
+        .regex(/^[\d,]+(\.\d{1,2})?$/, '올바른 수량 형식을 입력해주세요')
+        .transform((val) => {
+          const num = parseFloat(val.replace(/,/g, ''));
+          return isNaN(num) ? 0 : num;
+        }),
+    ]),
+
+    // 단가 (정수, 천단위 구분기호 허용)
+    unit_price: z.union([
+      z.number().int('단가는 정수여야 합니다').nonnegative('단가는 0 이상이어야 합니다'),
+      z
+        .string()
+        .regex(/^[\d,]+$/, '올바른 단가 형식을 입력해주세요 (정수만 가능)')
+        .transform((val) => {
+          const num = parseInt(val.replace(/,/g, ''), 10);
+          return isNaN(num) ? 0 : num;
+        }),
+    ]),
+
+    // 실적금액 (정수, 천단위 구분기호 허용)
+    performance_amount: z.union([
+      z.number().int('실적금액은 정수여야 합니다').nonnegative('실적금액은 0 이상이어야 합니다'),
+      z
+        .string()
+        .regex(/^[\d,]+$/, '올바른 실적금액 형식을 입력해주세요 (정수만 가능)')
+        .transform((val) => {
+          const num = parseInt(val.replace(/,/g, ''), 10);
+          return isNaN(num) ? 0 : num;
+        }),
+    ]),
+
+    // 담당자 (인광이에스 소속 직원만, nullable)
+    manager_id: z.string().uuid('올바른 담당자를 선택해주세요').nullable().optional(),
+
+    // 비고
+    notes: z.string().nullable().optional(),
+  })
+  .refine(
+    (data) => {
+      // 수량 소수점 둘째자리 검증
+      const quantity = typeof data.quantity === 'number' ? data.quantity : parseFloat(String(data.quantity).replace(/,/g, ''));
+      const decimalPlaces = (quantity.toString().split('.')[1] || '').length;
+      return decimalPlaces <= 2;
+    },
+    {
+      message: '수량은 소수점 둘째자리까지만 입력 가능합니다',
+      path: ['quantity'],
+    }
+  );
+
+/**
+ * 실적 수정 스키마 (모든 필드 선택적)
+ */
+export const performanceUpdateSchema = performanceInsertSchema.partial();
+
+// ============================================
+// 청구관리 관련 스키마
+// ============================================
+
+/**
+ * 청구 생성 스키마
+ */
+export const billingInsertSchema = z.object({
+  // 청구일 (필수)
+  billing_date: dateSchema,
+
+  // 계약명 (신규수주만 선택 가능, 필수)
+  order_id: z.string().uuid('올바른 계약을 선택해주세요'),
+
+  // 고객명 (선택한 계약의 고객 자동 입력, 필수)
+  customer_id: z.string().uuid('올바른 고객을 선택해주세요'),
+
+  // 청구구분 (필수)
+  billing_type: z.enum(['contract', 'interim', 'final'], {
+    message: '올바른 청구구분을 선택해주세요 (계약금/중도금/잔금)',
+  }),
+
+  // 청구금액 (필수, 소수점 없음, 정수만)
+  billing_amount: z.union([
+    z.number().int('청구금액은 정수만 입력 가능합니다').min(0, '청구금액은 0 이상이어야 합니다'),
+    z
+      .string()
+      .regex(/^[\d,]+$/, '올바른 청구금액 형식을 입력해주세요 (정수만 가능)')
+      .transform((val) => {
+        const num = parseInt(val.replace(/,/g, ''), 10);
+        return isNaN(num) ? 0 : num;
+      }),
+  ]),
+
+  // 수금예정일 (필수)
+  expected_payment_date: dateSchema,
+
+  // 계산서 발행 상태 (기본값: not_issued)
+  invoice_status: z.enum(['issued', 'not_issued'], {
+    message: '올바른 계산서 상태를 선택해주세요 (발행/미발행)',
+  }).default('not_issued'),
+
+  // 비고 (선택)
+  notes: z.string().nullable().optional(),
+});
+
+/**
+ * 청구 수정 스키마 (모든 필드 선택적)
+ */
+export const billingUpdateSchema = billingInsertSchema.partial();

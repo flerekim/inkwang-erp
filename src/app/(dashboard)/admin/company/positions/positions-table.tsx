@@ -235,6 +235,8 @@ export function PositionsTable({ data }: PositionsTableProps) {
         enableFuzzyFilter={true}
         enableColumnResizing={true}
         columnResizeMode="onChange"
+        enableColumnPinning={true}
+        enableColumnVisibility={true}
         enablePageSizeSelection={true}
         enablePageJump={true}
         toolbar={

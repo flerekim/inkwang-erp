@@ -254,6 +254,8 @@ export function DepartmentsTable({ data }: DepartmentsTableProps) {
         enableFuzzyFilter={true}
         enableColumnResizing={true}
         columnResizeMode="onChange"
+        enableColumnPinning={true}
+        enableColumnVisibility={true}
         enablePageSizeSelection={true}
         enablePageJump={true}
         toolbar={

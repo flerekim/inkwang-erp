@@ -1,0 +1,42 @@
+--- updateBillingWrapper 수정: 반환 타입 변환 추가
+  const updateBillingWrapper = useCallback(
+    async (id: string, data: Partial<BillingWithDetails>) => {
+      const formData: Partial<BillingFormData> = {
+        billing_date: data.billing_date,
+        order_id: data.order_id,
+        customer_id: data.customer_id,
+        billing_type: data.billing_type as 'contract' | 'interim' | 'final' | undefined,
+        billing_amount: data.billing_amount?.toString(),
+        expected_payment_date: data.expected_payment_date,
+        invoice_status: data.invoice_status as 'issued' | 'not_issued' | undefined,
+        notes: data.notes,
+      };
+
+      const result = await updateBilling(id, formData);
+      return { error: result.error || undefined, success: !result.error };
+    },
+    []
+  );
+
+--- deleteAction 래퍼 추가: 반환 타입 변환
+  const deleteBillingWrapper = useCallback(
+    async (id: string) => {
+      const result = await deleteBilling(id);
+      return { error: result.error || undefined, success: !result.error };
+    },
+    []
+  );
+
+--- handleSaveNewRow 수정: formData의 타입 단언 추가
+      const formData: BillingFormData = {
+        billing_date: newRowData.billing_date!,
+        order_id: newRowData.order_id!,
+        customer_id: newRowData.customer_id!,
+        billing_type: (newRowData.billing_type || 'contract') as 'contract' | 'interim' | 'final',
+        billing_amount: newRowData.billing_amount.toString(),
+        expected_payment_date: newRowData.expected_payment_date!,
+        invoice_status: (newRowData.invoice_status || 'not_issued') as 'issued' | 'not_issued',
+        notes: newRowData.notes || null,
+      };
+
+      await saveNewRowAction(formData, newRowData);

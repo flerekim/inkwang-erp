@@ -114,8 +114,29 @@ export function CrudTableToolbar({
           // 평상시: 추가, Excel 다운로드, 인쇄 버튼
           <>
             {onAdd && (
-              <Button onClick={onAdd} size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
+              <Button
+                onClick={onAdd}
+                size="sm"
+                className="
+                  group gap-2
+                  bg-gradient-to-r from-primary to-primary/80
+                  backdrop-blur-sm
+                  shadow-lg shadow-primary/25
+                  border border-primary/20
+                  hover:shadow-xl hover:shadow-primary/40
+                  hover:scale-105
+                  hover:-translate-y-0.5
+                  active:scale-95
+                  transition-all duration-200
+                  relative overflow-hidden
+                  before:absolute before:inset-0
+                  before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent
+                  before:translate-x-[-100%]
+                  hover:before:translate-x-[100%]
+                  before:transition-transform before:duration-500
+                "
+              >
+                <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
                 {addButtonText}
               </Button>
             )}
@@ -131,9 +152,21 @@ export function CrudTableToolbar({
                 onClick={onSave}
                 size="sm"
                 disabled={isSaving}
-                className="gap-2"
+                className="
+                  group gap-2
+                  bg-gradient-to-r from-green-600 to-green-500
+                  shadow-lg shadow-green-500/25
+                  border border-green-400/20
+                  hover:shadow-xl hover:shadow-green-500/40
+                  hover:scale-105
+                  hover:-translate-y-0.5
+                  active:scale-95
+                  transition-all duration-200
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  disabled:hover:scale-100 disabled:hover:translate-y-0
+                "
               >
-                <Check className="h-4 w-4" />
+                <Check className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 저장
               </Button>
             )}
@@ -143,7 +176,16 @@ export function CrudTableToolbar({
                 size="sm"
                 variant="outline"
                 disabled={isSaving}
-                className="gap-2"
+                className="
+                  gap-2
+                  hover:bg-muted/50
+                  hover:scale-105
+                  hover:-translate-y-0.5
+                  active:scale-95
+                  transition-all duration-200
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  disabled:hover:scale-100 disabled:hover:translate-y-0
+                "
               >
                 <X className="h-4 w-4" />
                 취소
@@ -159,7 +201,17 @@ export function CrudTableToolbar({
             size="sm"
             variant="destructive"
             disabled={selectedCount === 0 || isDeleting}
-            className="gap-2"
+            className="
+              gap-2
+              shadow-lg shadow-destructive/25
+              hover:shadow-xl hover:shadow-destructive/40
+              hover:scale-105
+              hover:-translate-y-0.5
+              active:scale-95
+              transition-all duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed
+              disabled:hover:scale-100 disabled:hover:translate-y-0
+            "
           >
             <Trash2 className="h-4 w-4" />
             {deleteButtonText} ({selectedCount})

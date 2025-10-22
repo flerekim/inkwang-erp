@@ -135,6 +135,126 @@ export type Database = {
           },
         ]
       }
+      books: {
+        Row: {
+          aladin_item_id: string | null
+          author: string | null
+          category: string | null
+          cover_image_path: string | null
+          cover_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_manual_entry: boolean | null
+          isbn: string | null
+          isbn13: string | null
+          page_count: number | null
+          pub_date: string | null
+          publisher: string | null
+          reader_count: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          aladin_item_id?: string | null
+          author?: string | null
+          category?: string | null
+          cover_image_path?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_manual_entry?: boolean | null
+          isbn?: string | null
+          isbn13?: string | null
+          page_count?: number | null
+          pub_date?: string | null
+          publisher?: string | null
+          reader_count?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          aladin_item_id?: string | null
+          author?: string | null
+          category?: string | null
+          cover_image_path?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_manual_entry?: boolean | null
+          isbn?: string | null
+          isbn13?: string | null
+          page_count?: number | null
+          pub_date?: string | null
+          publisher?: string | null
+          reader_count?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      collections: {
+        Row: {
+          account_number: string | null
+          bank_account_id: string | null
+          bank_name: string | null
+          billing_id: string
+          collection_amount: number
+          collection_date: string
+          collection_method: string
+          created_at: string
+          depositor: string | null
+          id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          bank_account_id?: string | null
+          bank_name?: string | null
+          billing_id: string
+          collection_amount: number
+          collection_date: string
+          collection_method: string
+          created_at?: string
+          depositor?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          bank_account_id?: string | null
+          bank_name?: string | null
+          billing_id?: string
+          collection_amount?: number
+          collection_date?: string
+          collection_method?: string
+          created_at?: string
+          depositor?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collections_billing_id_fkey"
+            columns: ["billing_id"]
+            isOneToOne: false
+            referencedRelation: "billings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           business_number: string | null
@@ -696,6 +816,200 @@ export type Database = {
         }
         Relationships: []
       }
+      reading_records: {
+        Row: {
+          book_id: string | null
+          company_id: string | null
+          completed_date: string | null
+          created_at: string | null
+          created_by: string | null
+          department_id: string | null
+          id: string
+          notes: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          book_id?: string | null
+          company_id?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          department_id?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          book_id?: string | null
+          company_id?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          department_id?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_records_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reading_records_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reading_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reading_records_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reading_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receivable_activities: {
+        Row: {
+          activity_content: string
+          activity_date: string
+          created_at: string
+          created_by: string
+          id: string
+          receivable_id: string
+          updated_at: string
+        }
+        Insert: {
+          activity_content: string
+          activity_date: string
+          created_at?: string
+          created_by: string
+          id?: string
+          receivable_id: string
+          updated_at?: string
+        }
+        Update: {
+          activity_content?: string
+          activity_date?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          receivable_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receivable_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receivable_activities_receivable_id_fkey"
+            columns: ["receivable_id"]
+            isOneToOne: false
+            referencedRelation: "receivables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receivable_activities_receivable_id_fkey"
+            columns: ["receivable_id"]
+            isOneToOne: false
+            referencedRelation: "receivables_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receivables: {
+        Row: {
+          billing_amount: number
+          billing_date: string
+          billing_id: string
+          billing_number: string
+          classification: string
+          contract_name: string
+          created_at: string
+          customer_id: string
+          id: string
+          order_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          billing_amount: number
+          billing_date: string
+          billing_id: string
+          billing_number: string
+          classification?: string
+          contract_name: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          order_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          billing_amount?: number
+          billing_date?: string
+          billing_id?: string
+          billing_number?: string
+          classification?: string
+          contract_name?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          order_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receivables_billing_id_fkey"
+            columns: ["billing_id"]
+            isOneToOne: true
+            referencedRelation: "billings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receivables_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receivables_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_module_access: {
         Row: {
           created_at: string | null
@@ -835,7 +1149,61 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      receivables_with_details: {
+        Row: {
+          activity_count: number | null
+          billing_amount: number | null
+          billing_date: string | null
+          billing_id: string | null
+          billing_number: string | null
+          classification: string | null
+          collected_amount: number | null
+          contract_name: string | null
+          created_at: string | null
+          customer_business_number: string | null
+          customer_id: string | null
+          customer_name: string | null
+          days_overdue: number | null
+          id: string | null
+          last_collection_date: string | null
+          manager_id: string | null
+          manager_name: string | null
+          order_id: string | null
+          remaining_amount: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receivables_billing_id_fkey"
+            columns: ["billing_id"]
+            isOneToOne: true
+            referencedRelation: "billings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receivables_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receivables_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       admin_create_user: {
@@ -865,6 +1233,10 @@ export type Database = {
       has_page_access: {
         Args: { module_code?: string; page_code: string }
         Returns: boolean
+      }
+      update_receivable_classification: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       validate_inkwang_email: {
         Args: { email: string }

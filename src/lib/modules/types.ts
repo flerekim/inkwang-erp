@@ -7,7 +7,7 @@
  * 모듈 코드 타입
  * 새 모듈 추가 시 여기에 추가하세요
  */
-export type ModuleCode = 'admin' | 'inkwang-es' | 'inkwang-ec';
+export type ModuleCode = 'admin' | 'inkwang-es' | 'inkwang-ec' | 'culture';
 
 /**
  * 모듈 정보 인터페이스

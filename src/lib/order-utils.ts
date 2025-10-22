@@ -119,20 +119,19 @@ export function getAllAttachments(order: OrderWithDetails & { children?: OrderWi
   // 부모의 첨부파일 추가
   if (order.attachments && Array.isArray(order.attachments)) {
     attachments.push(
-      ...order.attachments.map((file): AttachmentMetadata => {
-        const baseFile = typeof file === 'string'
-          ? { name: file, size: 0, path: file, uploadedAt: '' }
-          : file;
-
-        return {
-          ...baseFile,
+      ...order.attachments
+        .filter((file): file is string => typeof file === 'string')
+        .map((file): AttachmentMetadata => ({
+          name: file,
+          size: 0,
+          path: file,
+          uploadedAt: '',
           contractInfo: {
             type: order.contract_type as 'new' | 'change',
             name: order.contract_name,
             orderNumber: order.order_number,
           },
-        };
-      })
+        }))
     );
   }
 
@@ -142,20 +141,19 @@ export function getAllAttachments(order: OrderWithDetails & { children?: OrderWi
     order.children.slice(1).forEach((child) => {
       if (child.attachments && Array.isArray(child.attachments)) {
         attachments.push(
-          ...child.attachments.map((file): AttachmentMetadata => {
-            const baseFile = typeof file === 'string'
-              ? { name: file, size: 0, path: file, uploadedAt: '' }
-              : file;
-
-            return {
-              ...baseFile,
+          ...child.attachments
+            .filter((file): file is string => typeof file === 'string')
+            .map((file): AttachmentMetadata => ({
+              name: file,
+              size: 0,
+              path: file,
+              uploadedAt: '',
               contractInfo: {
                 type: child.contract_type as 'new' | 'change',
                 name: child.contract_name,
                 orderNumber: child.order_number,
               },
-            };
-          })
+            }))
         );
       }
     });

@@ -82,6 +82,9 @@ export function createEmployeeColumns({
         <span className="font-mono font-semibold">{row.getValue('employee_number')}</span>
       ),
       enableSorting: true,
+      size: 120,
+      minSize: 100,
+      maxSize: 150,
     },
     {
       accessorKey: 'name',
@@ -99,6 +102,9 @@ export function createEmployeeColumns({
         );
       },
       enableSorting: true,
+      size: 150,
+      minSize: 120,
+      maxSize: 200,
     },
     {
       accessorKey: 'email',
@@ -119,6 +125,9 @@ export function createEmployeeColumns({
         return <span className="text-sm">{getValue<string>()}</span>;
       },
       enableSorting: true,
+      size: 250,
+      minSize: 200,
+      maxSize: 350,
     },
     {
       accessorKey: 'password',
@@ -138,6 +147,9 @@ export function createEmployeeColumns({
         );
       },
       enableSorting: false,
+      size: 150,
+      minSize: 120,
+      maxSize: 200,
     },
     {
       accessorKey: 'company_id',
@@ -159,6 +171,9 @@ export function createEmployeeColumns({
         );
       },
       enableSorting: false,
+      size: 180,
+      minSize: 150,
+      maxSize: 250,
     },
     {
       accessorKey: 'department_id',
@@ -180,6 +195,9 @@ export function createEmployeeColumns({
         );
       },
       enableSorting: false,
+      size: 150,
+      minSize: 120,
+      maxSize: 200,
     },
     {
       accessorKey: 'position_id',
@@ -201,6 +219,9 @@ export function createEmployeeColumns({
         );
       },
       enableSorting: false,
+      size: 120,
+      minSize: 100,
+      maxSize: 150,
     },
     {
       accessorKey: 'role',
@@ -226,6 +247,9 @@ export function createEmployeeColumns({
         );
       },
       enableSorting: false,
+      size: 100,
+      minSize: 80,
+      maxSize: 120,
     },
     {
       accessorKey: 'hire_date',
@@ -243,6 +267,9 @@ export function createEmployeeColumns({
         );
       },
       enableSorting: true,
+      size: 130,
+      minSize: 110,
+      maxSize: 150,
     },
     {
       accessorKey: 'employment_status',
@@ -268,6 +295,9 @@ export function createEmployeeColumns({
         );
       },
       enableSorting: false,
+      size: 100,
+      minSize: 80,
+      maxSize: 120,
     },
     // Actions 컬럼 (모듈 권한 관리, 삭제)
     {

@@ -55,9 +55,9 @@ export function createBankAccountColumns({
       },
       enableSorting: false,
       enableHiding: false,
-      size: 20,
-      minSize: 20,
-      maxSize: 20,
+      size: 60,
+      minSize: 60,
+      maxSize: 60,
     },
     {
       accessorKey: 'company',
@@ -82,6 +82,9 @@ export function createBankAccountColumns({
         );
       },
       enableSorting: true,
+      size: 180,
+      minSize: 150,
+      maxSize: 250,
     },
     {
       accessorKey: 'bank_name',
@@ -99,6 +102,9 @@ export function createBankAccountColumns({
         );
       },
       enableSorting: true,
+      size: 150,
+      minSize: 120,
+      maxSize: 200,
     },
     {
       accessorKey: 'account_number',
@@ -116,6 +122,9 @@ export function createBankAccountColumns({
         );
       },
       enableSorting: true,
+      size: 200,
+      minSize: 150,
+      maxSize: 250,
     },
     {
       accessorKey: 'initial_balance',
@@ -134,6 +143,9 @@ export function createBankAccountColumns({
         );
       },
       enableSorting: true,
+      size: 150,
+      minSize: 120,
+      maxSize: 200,
     },
     {
       accessorKey: 'current_balance',
@@ -143,6 +155,9 @@ export function createBankAccountColumns({
         return <div className="px-2 py-1">{value?.toLocaleString() || '0'}</div>;
       },
       enableSorting: true,
+      size: 150,
+      minSize: 120,
+      maxSize: 200,
     },
   ];
 }

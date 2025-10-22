@@ -217,6 +217,8 @@ export function CompaniesTable({ data }: CompaniesTableProps) {
         enableFuzzyFilter={true}
         enableColumnResizing={true}
         columnResizeMode="onChange"
+        enableColumnPinning={true}
+        enableColumnVisibility={true}
         enablePageSizeSelection={true}
         enablePageJump={true}
         toolbar={

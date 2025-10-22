@@ -20,10 +20,10 @@ interface OrderColumnsProps {
   verificationCompanies: Customer[];
   users: UserSelectOption[];
   newOrders: Array<{ id: string; order_number: string; contract_name: string }>;
-  handleUnifiedUpdate: (rowIndex: number, columnId: string, value: string) => Promise<void>;
+  onUpdateCell: (rowIndex: number, columnId: string, value: string) => Promise<void>;
   onEditPollutants?: (order: OrderWithDetails) => void;
   onEditMethods?: (order: OrderWithDetails) => void;
-  onOpenParentOrderDialog?: (order: OrderWithDetails) => void;
+  onSelectParentOrder?: (order: OrderWithDetails) => void;
   onManageAttachments?: (order: OrderWithDetails) => void;
 }
 
@@ -45,10 +45,10 @@ export function createOrderColumns({
   verificationCompanies,
   users,
   newOrders,
-  handleUnifiedUpdate,
+  onUpdateCell,
   onEditPollutants,
   onEditMethods,
-  onOpenParentOrderDialog,
+  onSelectParentOrder,
   onManageAttachments,
 }: OrderColumnsProps): ColumnDef<OrderWithDetails>[] {
   // 계약구분 옵션
@@ -81,6 +81,7 @@ export function createOrderColumns({
   const exportTypeOptions = [
     { id: 'on_site', name: '부지내' },
     { id: 'export', name: '반출' },
+    { id: 'new_business', name: '신규사업' },
   ];
   return [
     // 확장/축소 버튼 컬럼
@@ -175,7 +176,7 @@ export function createOrderColumns({
             value={contractType}
             rowIndex={row.index}
             columnId="contract_type"
-            onUpdate={handleUnifiedUpdate}
+            onUpdate={onUpdateCell}
             options={contractTypeOptions}
             type="select"
             placeholder="계약구분"
@@ -212,7 +213,7 @@ export function createOrderColumns({
             variant="ghost"
             size="sm"
             className="h-7 gap-1 text-xs"
-            onClick={() => onOpenParentOrderDialog?.(row.original)}
+            onClick={() => onSelectParentOrder?.(row.original)}
           >
             <Link2 className="h-3 w-3" />
             <span className={parentOrder ? '' : 'text-muted-foreground'}>
@@ -234,7 +235,7 @@ export function createOrderColumns({
             value={businessType}
             rowIndex={row.index}
             columnId="business_type"
-            onUpdate={handleUnifiedUpdate}
+            onUpdate={onUpdateCell}
             options={businessTypeOptions}
             type="select"
             placeholder="구분"
@@ -259,7 +260,7 @@ export function createOrderColumns({
             value={pricingType}
             rowIndex={row.index}
             columnId="pricing_type"
-            onUpdate={handleUnifiedUpdate}
+            onUpdate={onUpdateCell}
             options={pricingTypeOptions}
             type="select"
             placeholder="계약유형"
@@ -315,7 +316,7 @@ export function createOrderColumns({
             value={status}
             rowIndex={row.index}
             columnId="contract_status"
-            onUpdate={handleUnifiedUpdate}
+            onUpdate={onUpdateCell}
             options={contractStatusOptions}
             type="select"
             placeholder="계약상태"
@@ -340,7 +341,7 @@ export function createOrderColumns({
             value={getValue<string>() || ''}
             rowIndex={row.index}
             columnId="contract_name"
-            onUpdate={handleUnifiedUpdate}
+            onUpdate={onUpdateCell}
             className={isNewRow ? 'border border-primary/50' : ''}
           />
         );
@@ -358,7 +359,7 @@ export function createOrderColumns({
             value={row.original.customer_id}
             rowIndex={row.index}
             columnId="customer_id"
-            onUpdate={handleUnifiedUpdate}
+            onUpdate={onUpdateCell}
             options={customers}
             type="combobox"
             placeholder="고객 선택"
@@ -381,7 +382,7 @@ export function createOrderColumns({
             value={getValue<string>() || ''}
             rowIndex={row.index}
             columnId="contract_date"
-            onUpdate={handleUnifiedUpdate}
+            onUpdate={onUpdateCell}
             className={isNewRow ? 'border border-primary/50' : ''}
           />
         );
@@ -395,6 +396,8 @@ export function createOrderColumns({
       cell: ({ getValue, row }) => {
         const isNewRow = row.original.id?.startsWith('temp-');
         const amount = getValue<number>();
+        const pricingType = row.original.pricing_type;
+        const contractUnit = row.original.contract_unit;
 
         // 집계 로직: 자식 행이 있으면 총합계 표시
         const orderWithChildren = row.original as ExpandableRow<OrderWithDetails>;
@@ -407,16 +410,69 @@ export function createOrderColumns({
             rowIndex={row.index}
             columnId="contract_amount"
             type="number"
-            onUpdate={handleUnifiedUpdate}
+            onUpdate={onUpdateCell}
             className={isNewRow ? 'border border-primary/50' : ''}
             formatDisplay={(value) => {
               const displayAmount = hasChildren ? totalAmount : Number(value || 0);
-              return displayAmount.toLocaleString() + '원';
+              const formattedAmount = displayAmount.toLocaleString();
+
+              // 단가계약인 경우 단위 표시
+              if (pricingType === 'unit_price' && contractUnit) {
+                const unitLabels: Record<string, string> = {
+                  ton: 'Ton',
+                  unit: '대',
+                  m3: '㎥',
+                };
+                return `${formattedAmount} ${unitLabels[contractUnit] || contractUnit}/원`;
+              }
+
+              // 총액계약인 경우 원만 표시
+              return formattedAmount + '원';
             }}
           />
         );
       },
       enableSorting: true,
+    },
+    // 계약단위 (단가계약 시에만 표시)
+    {
+      accessorKey: 'contract_unit',
+      header: '단위',
+      cell: ({ row }) => {
+        const pricingType = row.original.pricing_type;
+        const contractUnit = row.original.contract_unit;
+
+        // 총액계약인 경우 단위 컬럼 숨김
+        if (pricingType !== 'unit_price') {
+          return <span className="text-xs text-muted-foreground">-</span>;
+        }
+
+        const unitOptions = [
+          { id: 'ton', name: 'Ton' },
+          { id: 'unit', name: '대' },
+          { id: 'm3', name: '㎥' },
+        ];
+
+        const unitLabels: Record<string, string> = {
+          ton: 'Ton',
+          unit: '대',
+          m3: '㎥',
+        };
+
+        return (
+          <EditableSelectCell
+            value={contractUnit || 'ton'}
+            rowIndex={row.index}
+            columnId="contract_unit"
+            onUpdate={onUpdateCell}
+            options={unitOptions}
+            type="select"
+            placeholder="단위 선택"
+            displayValue={contractUnit ? unitLabels[contractUnit] : '미선택'}
+          />
+        );
+      },
+      enableSorting: false,
     },
     // 담당자
     {
@@ -429,7 +485,7 @@ export function createOrderColumns({
             value={row.original.manager_id}
             rowIndex={row.index}
             columnId="manager_id"
-            onUpdate={handleUnifiedUpdate}
+            onUpdate={onUpdateCell}
             options={users}
             type="combobox"
             placeholder="담당자 선택"
@@ -447,16 +503,21 @@ export function createOrderColumns({
       header: '반출여부',
       cell: ({ row }) => {
         const exportType = row.getValue('export_type') as string;
+        const labelMap: Record<string, string> = {
+          on_site: '부지내',
+          export: '반출',
+          new_business: '신규사업',
+        };
         return (
           <EditableSelectCell
             value={exportType}
             rowIndex={row.index}
             columnId="export_type"
-            onUpdate={handleUnifiedUpdate}
+            onUpdate={onUpdateCell}
             options={exportTypeOptions}
             type="select"
             placeholder="반출여부"
-            displayValue={exportType === 'on_site' ? '부지내' : '반출'}
+            displayValue={labelMap[exportType] || exportType}
           />
         );
       },
@@ -491,16 +552,20 @@ export function createOrderColumns({
         // 오염물질이 1개인 경우: 오염물질명 + 농도 + 단위 표시
         if (pollutants.length === 1) {
           const p = pollutants[0];
+          const displayText = `${p.pollutant?.name} (${p.concentration} mg/kg)`;
           return (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-sm">
-                {p.pollutant?.name} ({p.concentration} mg/kg)
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <span
+                className="text-sm truncate flex-1"
+                title={displayText}
+              >
+                {displayText}
               </span>
               {onEditPollutants && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 ml-auto"
+                  className="h-6 w-6 p-0 flex-shrink-0"
                   onClick={() => onEditPollutants(row.original)}
                 >
                   <Pencil className="h-3 w-3" />
@@ -581,14 +646,20 @@ export function createOrderColumns({
         // 정화방법이 1개인 경우: 정화방법명 표시
         if (methods.length === 1) {
           const m = methods[0];
+          const displayText = m.method?.name || '';
           return (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-sm">{m.method?.name}</span>
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <span
+                className="text-sm truncate flex-1"
+                title={displayText}
+              >
+                {displayText}
+              </span>
               {onEditMethods && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 ml-auto"
+                  className="h-6 w-6 p-0 flex-shrink-0"
                   onClick={() => onEditMethods(row.original)}
                 >
                   <Pencil className="h-3 w-3" />
@@ -649,7 +720,7 @@ export function createOrderColumns({
             value={row.original.verification_company_id}
             rowIndex={row.index}
             columnId="verification_company_id"
-            onUpdate={handleUnifiedUpdate}
+            onUpdate={onUpdateCell}
             options={verificationCompanies}
             type="combobox"
             placeholder="검증업체 선택"
@@ -806,7 +877,7 @@ export function createOrderColumns({
           <EditableNotesCell
             notes={notes}
             onSave={async (value) => {
-              await handleUnifiedUpdate(row.index, 'notes', value);
+              await onUpdateCell(row.index, 'notes', value);
             }}
           />
         );

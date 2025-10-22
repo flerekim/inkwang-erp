@@ -206,7 +206,16 @@ const EditableCellComponent = ({
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
         disabled={isSaving}
-        className={cn('h-8 py-1', className)}
+        className={cn(
+          'h-8 py-1',
+          'animate-in fade-in zoom-in-95 duration-200',
+          'shadow-lg shadow-primary/10',
+          'border-2 border-primary/50',
+          'focus-visible:ring-2 focus-visible:ring-primary/20',
+          'focus-visible:border-primary',
+          'focus-visible:shadow-primary/30',
+          className
+        )}
       />
     );
   }
@@ -216,11 +225,18 @@ const EditableCellComponent = ({
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       className={cn(
-        'cursor-pointer rounded px-2 py-1 hover:bg-muted/50 transition-colors',
+        'cursor-pointer rounded-lg px-3 py-2',
+        'transition-all duration-200 ease-out',
+        'hover:bg-gradient-to-r hover:from-muted/80 hover:to-muted/40',
+        'hover:shadow-inner',
+        'hover:scale-[1.02]',
+        'active:scale-[0.98]',
+        'border border-transparent hover:border-muted-foreground/10',
+        'truncate min-w-0',
         isMobile && 'active:bg-muted',
         className
       )}
-      title={isMobile ? '탭하여 편집' : '더블클릭하여 편집'}
+      title={`${displayValue} (${isMobile ? '탭하여 편집' : '더블클릭하여 편집'})`}
     >
       {displayValue}
     </div>

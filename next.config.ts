@@ -32,12 +32,26 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '**.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'image.aladin.co.kr',
+      },
     ],
   },
 
   // 성능 최적화
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
+  },
+
+  // 실험적 기능
+  experimental: {
+    // React Server Actions 최적화
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+    // PPR (Partial Prerendering) - Next.js 15의 새로운 렌더링 모드
+    ppr: false, // 안정화되면 true로 변경 권장
   },
 };
 
