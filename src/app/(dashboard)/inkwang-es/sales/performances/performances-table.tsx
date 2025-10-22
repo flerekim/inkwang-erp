@@ -102,6 +102,12 @@ export function PerformancesTable({ data }: PerformancesTableProps) {
         enableRowSelection
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
+        enableColumnResizing={true}
+        columnResizeMode="onChange"
+        enableColumnPinning={true}
+        enableColumnVisibility={true}
+        enablePageSizeSelection={true}
+        enablePageJump={true}
       />
 
       {/* 삭제 확인 다이얼로그 */}

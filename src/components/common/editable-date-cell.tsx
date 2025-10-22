@@ -276,6 +276,9 @@ const EditableDateCellComponent = ({
       className={cn(
         'cursor-pointer rounded px-2 py-1 text-sm hover:bg-muted/50 transition-colors',
         'border border-transparent hover:border-muted-foreground/20',
+        // 텍스트 오버플로우 처리 (TanStack Table 권장 패턴)
+        'truncate overflow-hidden text-ellipsis whitespace-nowrap',
+        'min-w-0 max-w-full',
         className
       )}
       title="더블클릭하여 편집 (형식: yyyymmdd)"

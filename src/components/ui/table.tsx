@@ -57,7 +57,8 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
+        // ERP 베스트 프랙티스: zebra striping + hover 효과
+        "even:bg-muted/30 hover:bg-muted/70 data-[state=selected]:bg-primary/10 border-b transition-colors",
         className
       )}
       {...props}
@@ -70,7 +71,8 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "text-foreground h-10 px-2 text-center align-middle font-medium whitespace-nowrap border-r last:border-r-0 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        // ERP 베스트 프랙티스: 수직 보더 제거, 수평선만 유지
+        "text-foreground h-10 px-2 text-center align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}
@@ -83,7 +85,8 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 text-center align-middle whitespace-nowrap border-r last:border-r-0 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        // ERP 베스트 프랙티스: 수직 보더 제거, 수평선만 유지
+        "p-2 text-center align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}

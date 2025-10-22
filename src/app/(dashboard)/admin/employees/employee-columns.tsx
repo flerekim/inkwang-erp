@@ -71,9 +71,9 @@ export function createEmployeeColumns({
       },
       enableSorting: false,
       enableHiding: false,
-      size: 50,
-      minSize: 50,
-      maxSize: 50,
+      size: 40,
+      minSize: 40,
+      maxSize: 40,
     },
     {
       accessorKey: 'employee_number',

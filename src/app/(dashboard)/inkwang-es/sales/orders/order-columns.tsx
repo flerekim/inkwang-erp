@@ -120,9 +120,9 @@ export function createOrderColumns({
       },
       enableSorting: false,
       enableHiding: false,
-      size: 60,
-      minSize: 60,
-      maxSize: 60,
+      size: 50,
+      minSize: 50,
+      maxSize: 50,
     },
     // 체크박스 컬럼
     {
@@ -189,6 +189,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 120,
+      minSize: 120,
+      maxSize: 120,
     },
     // 연동 신규계약 (parent_order_id)
     {
@@ -223,6 +226,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 100,
+      minSize: 100,
+      maxSize: 100,
     },
     // 구분
     {
@@ -248,6 +254,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 80,
+      minSize: 80,
+      maxSize: 80,
     },
     // 계약유형
     {
@@ -273,6 +282,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 120,
+      minSize: 120,
+      maxSize: 120,
     },
     // 계약상태
     {
@@ -329,6 +341,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 120,
+      minSize: 120,
+      maxSize: 120,
     },
     // 계약명
     {
@@ -347,6 +362,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: true,
+      size: 300,
+      minSize: 300,
+      maxSize: 300,
     },
     // 고객명
     {
@@ -370,6 +388,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 200,
+      minSize: 200,
+      maxSize: 200,
     },
     // 계약일
     {
@@ -433,6 +454,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: true,
+      size: 160,
+      minSize: 160,
+      maxSize: 160,
     },
     // 계약단위 (단가계약 시에만 표시)
     {
@@ -473,6 +497,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 60,
+      minSize: 60,
+      maxSize: 60,
     },
     // 담당자
     {
@@ -496,6 +523,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 120,
+      minSize: 120,
+      maxSize: 120,
     },
     // 반출여부
     {
@@ -522,6 +552,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 100,
+      minSize: 100,
+      maxSize: 100,
     },
     // 오염물질 (요약 정보 + 상세편집 버튼)
     {
@@ -616,6 +649,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 180,
+      minSize: 180,
+      maxSize: 180,
     },
     // 정화방법 (요약 정보 + 상세편집 버튼)
     {
@@ -708,6 +744,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 180,
+      minSize: 180,
+      maxSize: 180,
     },
     // 검증업체
     {
@@ -731,6 +770,9 @@ export function createOrderColumns({
         );
       },
       enableSorting: false,
+      size: 180,
+      minSize: 180,
+      maxSize: 180,
     },
     // 첨부파일
     {

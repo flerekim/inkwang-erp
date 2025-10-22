@@ -232,7 +232,9 @@ const EditableCellComponent = ({
         'hover:scale-[1.02]',
         'active:scale-[0.98]',
         'border border-transparent hover:border-muted-foreground/10',
-        'truncate min-w-0',
+        // 텍스트 오버플로우 처리 (TanStack Table 권장 패턴)
+        'truncate overflow-hidden text-ellipsis whitespace-nowrap',
+        'min-w-0 max-w-full',
         isMobile && 'active:bg-muted',
         className
       )}

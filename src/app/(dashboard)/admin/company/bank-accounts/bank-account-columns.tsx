@@ -55,9 +55,9 @@ export function createBankAccountColumns({
       },
       enableSorting: false,
       enableHiding: false,
-      size: 60,
-      minSize: 60,
-      maxSize: 60,
+      size: 20,
+      minSize: 20,
+      maxSize: 20,
     },
     {
       accessorKey: 'company',

@@ -33,9 +33,9 @@ export function createColumns({ handleUpdateCell, handleUpdateNewRow }: CreateCo
       ),
       enableSorting: false,
       enableHiding: false,
-      size: 20,
-      minSize: 20,
-      maxSize: 20,
+      size: 50,
+      minSize: 50,
+      maxSize: 50,
     },
     {
       accessorKey: 'name',
@@ -52,6 +52,9 @@ export function createColumns({ handleUpdateCell, handleUpdateNewRow }: CreateCo
           />
         );
       },
+      size: 200,
+      minSize: 300,
+      maxSize: 300,
     },
     {
       accessorKey: 'customer_type',

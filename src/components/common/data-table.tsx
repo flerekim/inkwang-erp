@@ -422,16 +422,14 @@ export function DataTable<TData, TValue>({
             </colgroup>
           )}
           <TableHeader className="
-            bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5
-            backdrop-blur-xl backdrop-saturate-150
-            border-b-2 border-primary/20
+            bg-[var(--table-header-bg)]
+            border-b-2 border-[var(--table-border)]
             relative
-            before:absolute before:inset-0
-            before:bg-gradient-to-b before:from-white/20 before:to-transparent
-            before:rounded-t-lg before:pointer-events-none
             transition-all duration-300
           "
-          style={{ boxShadow: 'var(--glass-shadow)' }}
+          style={{
+            boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)'
+          }}
           >
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-primary/5 transition-colors duration-200">
@@ -536,6 +534,11 @@ export function DataTable<TData, TValue>({
                     return (
                       <TableCell
                         key={cell.id}
+                        className={cn(
+                          // 텍스트 오버플로우 처리 (TanStack Table 권장 패턴)
+                          'overflow-hidden',
+                          'min-w-0 max-w-full'
+                        )}
                         style={{
                           // colgroup이 width를 제어하므로 여기서는 pinning 스타일만 적용
                           ...pinningStyles,

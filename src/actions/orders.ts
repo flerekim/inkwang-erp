@@ -136,7 +136,9 @@ export async function createOrder(formData: OrderFormData) {
       .from('orders')
       .insert({
         ...orderData,
-        order_number: '', // 트리거에서 자동 생성
+        // NULL로 설정하여 트리거가 자동 생성 (UNIQUE 제약 위반 방지)
+        // unknown을 거쳐 string으로 캐스팅하여 타입 안전성 향상
+        order_number: null as unknown as string,
         created_by: user.id,
         updated_by: user.id,
       })

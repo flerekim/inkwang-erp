@@ -300,7 +300,12 @@ const EditableSelectCellComponent = ({
   return (
     <div
       onDoubleClick={handleDoubleClick}
-      className="cursor-pointer rounded px-2 py-1 hover:bg-muted/50 transition-colors"
+      className={cn(
+        "cursor-pointer rounded px-2 py-1 hover:bg-muted/50 transition-colors",
+        // 텍스트 오버플로우 처리 (TanStack Table 권장 패턴)
+        "truncate overflow-hidden text-ellipsis whitespace-nowrap",
+        "min-w-0 max-w-full"
+      )}
       title="더블클릭하여 편집"
     >
       {displayValue || displayText}

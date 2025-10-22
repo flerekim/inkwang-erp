@@ -45,10 +45,11 @@
 
 :root {
   --radius: 0.5rem;
-  /* Background: #F9F7F7 */
-  --background: oklch(0.98 0.003 30);
+  /* Background: #F5F7FA (개선된 페이지 배경 - 프로페셔널한 블루 그레이) */
+  --background: oklch(0.965 0.005 240);
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
+  /* Card: 거의 순백 (배경과 명확한 대비) */
+  --card: oklch(0.995 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
@@ -58,7 +59,8 @@
   /* Secondary: Light Blue Grey #DBE2EF */
   --secondary: oklch(0.89 0.02 250);
   --secondary-foreground: oklch(0.145 0 0);
-  --muted: oklch(0.97 0 0);
+  /* Muted: 테이블 hover 및 zebra striping용 */
+  --muted: oklch(0.975 0.003 240);
   --muted-foreground: oklch(0.556 0 0);
   /* Accent: Light Blue Grey #DBE2EF */
   --accent: oklch(0.89 0.02 250);
@@ -69,17 +71,18 @@
   --success-foreground: oklch(0.985 0 0);
   --warning: oklch(0.7 0.19 85);
   --warning-foreground: oklch(0.145 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  /* Border: #D8DCE4 (개선된 가시성, WCAG 3:1 대비 충족) */
+  --border: oklch(0.88 0.005 240);
+  --input: oklch(0.88 0.005 240);
   /* Ring: Blue accent */
   --ring: oklch(0.52 0.09 250);
   --chart-1: oklch(0.52 0.09 250);
   --chart-2: oklch(0.89 0.02 250);
   --chart-3: oklch(0.22 0.05 250);
-  --chart-4: oklch(0.98 0.003 30);
+  --chart-4: oklch(0.965 0.005 240);
   --chart-5: oklch(0.769 0.188 70.08);
-  /* Sidebar: #F9F7F7 */
-  --sidebar: oklch(0.98 0.003 30);
+  /* Sidebar: 페이지 배경과 동일 */
+  --sidebar: oklch(0.965 0.005 240);
   --sidebar-foreground: oklch(0.145 0 0);
   /* Sidebar Active: Blue #3F72AF */
   --sidebar-primary: oklch(0.52 0.09 250);
@@ -87,8 +90,12 @@
   /* Sidebar Hover: Light Blue Grey #DBE2EF */
   --sidebar-accent: oklch(0.89 0.02 250);
   --sidebar-accent-foreground: oklch(0.145 0 0);
-  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-border: oklch(0.88 0.005 240);
   --sidebar-ring: oklch(0.52 0.09 250);
+
+  /* 테이블 전용 변수 (ERP 베스트 프랙티스) */
+  --table-header-bg: oklch(0.96 0.01 240);
+  --table-border: oklch(0.88 0.005 240);
 }
 
 .dark {

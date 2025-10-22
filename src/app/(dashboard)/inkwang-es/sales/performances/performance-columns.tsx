@@ -65,7 +65,9 @@ export function createPerformanceColumns({
       },
       enableSorting: false,
       enableHiding: false,
-      size: 50,
+      size: 40,
+      minSize: 40,
+      maxSize: 40,
     },
 
     // 실적구분 (예정/확정)
@@ -91,7 +93,9 @@ export function createPerformanceColumns({
           </Button>
         );
       },
-      size: 100,
+      size: 80,
+      minSize: 80,
+      maxSize: 80,
     },
 
     // 계약명 (combobox로 신규계약 선택)
@@ -124,7 +128,9 @@ export function createPerformanceColumns({
         // 기존 행: 읽기 전용
         return <span className="truncate">{contractName || '-'}</span>;
       },
-      size: 200,
+      size: 300,
+      minSize: 300,
+      maxSize: 300,
     },
 
     // 고객명 (계약 선택 시 자동 표시, 읽기 전용)
@@ -146,7 +152,9 @@ export function createPerformanceColumns({
         // 기존 행: 읽기 전용
         return <span>{customerName || '-'}</span>;
       },
-      size: 150,
+      size: 200,
+      minSize: 200,
+      maxSize: 200,
     },
 
     // 실적일
@@ -165,7 +173,9 @@ export function createPerformanceColumns({
           />
         );
       },
-      size: 130,
+      size: 100,
+      minSize: 100,
+      maxSize: 100,
     },
 
     // 단위
@@ -189,7 +199,9 @@ export function createPerformanceColumns({
           />
         );
       },
-      size: 100,
+      size: 70,
+      minSize: 70,
+      maxSize: 70,
     },
 
     // 수량
@@ -215,7 +227,9 @@ export function createPerformanceColumns({
           </div>
         );
       },
-      size: 120,
+      size: 80,
+      minSize: 80,
+      maxSize: 80,
     },
 
     // 단가
@@ -237,7 +251,9 @@ export function createPerformanceColumns({
           </div>
         );
       },
-      size: 130,
+      size: 90,
+      minSize: 90,
+      maxSize: 90,
     },
 
     // 실적금액
@@ -305,7 +321,9 @@ export function createPerformanceColumns({
           />
         );
       },
-      size: 200,
+      size: 100,
+      minSize: 100,
+      maxSize: 100,
     },
   ];
 }

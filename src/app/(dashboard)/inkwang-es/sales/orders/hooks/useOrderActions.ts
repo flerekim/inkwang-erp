@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { updateOrder, deleteOrder, createOrder } from '@/actions/orders';
+import { updateOrder, deleteOrder, createOrder, getOrderById } from '@/actions/orders';
 import { useTableActions } from '@/hooks/use-table-actions';
 import type { OrderWithDetails, Customer, Pollutant, PollutantInput, AttachmentMetadata, OrderFormData } from '@/types';
 import type { UseTableStateReturn } from '@/hooks/use-table-state';
@@ -192,6 +192,10 @@ export function useOrderActions(
         if (!data.customer_id) {
           return { error: '고객을 선택해주세요.' };
         }
+        // 변경 계약인 경우 부모 계약 필수 검증
+        if (data.contract_type === 'change' && !data.parent_order_id) {
+          return { error: '변경 계약은 연동할 신규 계약을 선택해주세요.' };
+        }
         return true;
       }
     );
@@ -325,32 +329,121 @@ export function useOrderActions(
       if (editingOrder.id?.startsWith('temp-')) {
         if (!newRowData) return;
 
+        // 부모 계약이 선택된 경우 해당 계약의 데이터 가져오기
+        if (parentOrderId) {
+          try {
+            const { data: parentOrder, error } = await getOrderById(parentOrderId);
+
+            if (error || !parentOrder) {
+              toast({
+                variant: 'destructive',
+                title: '데이터 로드 실패',
+                description: '부모 계약의 데이터를 가져올 수 없습니다.',
+              });
+              return;
+            }
+
+            // 부모 계약의 데이터를 복사 (계약구분은 '변경' 유지)
+            setNewRowData({
+              ...newRowData,
+              parent_order_id: parentOrderId,
+              // 부모 계약에서 복사할 필드들
+              contract_name: parentOrder.contract_name, // 계약명 복사
+              business_type: parentOrder.business_type,
+              pricing_type: parentOrder.pricing_type,
+              customer_id: parentOrder.customer_id,
+              manager_id: parentOrder.manager_id,
+              export_type: parentOrder.export_type,
+              verification_company_id: parentOrder.verification_company_id,
+              pollutants: parentOrder.pollutants || [],
+              methods: parentOrder.methods || [],
+            });
+
+            toast({
+              title: '부모 계약 설정',
+              description: '부모 계약의 데이터가 자동으로 입력되었습니다. 저장 버튼을 눌러 수주를 완료하세요.',
+            });
+            return;
+          } catch (error) {
+            toast({
+              variant: 'destructive',
+              title: '오류 발생',
+              description: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+            });
+            return;
+          }
+        }
+
+        // 부모 계약이 해제된 경우 (null)
         setNewRowData({
           ...newRowData,
-          parent_order_id: parentOrderId,
+          parent_order_id: null,
         });
 
         toast({
-          title: '부모 계약 설정',
-          description: '부모 계약이 설정되었습니다. 저장 버튼을 눌러 수주를 완료하세요.',
+          title: '연동 해제',
+          description: '부모 계약 연동이 해제되었습니다.',
         });
         return;
       }
 
       // 기존 행인 경우
       try {
-        const result = await updateOrder(editingOrder.id, {
-          parent_order_id: parentOrderId,
-        });
+        // 부모 계약이 선택된 경우 해당 계약의 데이터 가져와서 함께 업데이트
+        if (parentOrderId) {
+          const { data: parentOrder, error: fetchError } = await getOrderById(parentOrderId);
 
-        if (result.error) {
-          throw new Error(result.error);
+          if (fetchError || !parentOrder) {
+            toast({
+              variant: 'destructive',
+              title: '데이터 로드 실패',
+              description: '부모 계약의 데이터를 가져올 수 없습니다.',
+            });
+            return;
+          }
+
+          // 부모 계약의 데이터와 함께 업데이트
+          const result = await updateOrder(editingOrder.id, {
+            parent_order_id: parentOrderId,
+            // 부모 계약에서 복사할 필드들
+            contract_name: parentOrder.contract_name, // 계약명 복사
+            business_type: parentOrder.business_type as 'civilian' | 'government',
+            pricing_type: parentOrder.pricing_type as 'total' | 'unit_price',
+            customer_id: parentOrder.customer_id,
+            manager_id: parentOrder.manager_id,
+            export_type: parentOrder.export_type as 'on_site' | 'export' | 'new_business',
+            verification_company_id: parentOrder.verification_company_id,
+            pollutants: (parentOrder.pollutants || []).map(p => ({
+              pollutant_id: p.pollutant_id,
+              concentration: String(p.concentration), // number를 string으로 변환
+              group_name: p.group_name || null,
+            })),
+            methods: (parentOrder.methods || []).map(m => m.method_id),
+          });
+
+          if (result.error) {
+            throw new Error(result.error);
+          }
+
+          toast({
+            title: '저장 완료',
+            description: '부모 계약의 데이터가 자동으로 복사되어 저장되었습니다.',
+          });
+        } else {
+          // 부모 계약 해제만 하는 경우
+          const result = await updateOrder(editingOrder.id, {
+            parent_order_id: null,
+          });
+
+          if (result.error) {
+            throw new Error(result.error);
+          }
+
+          toast({
+            title: '저장 완료',
+            description: '부모 계약 연동이 해제되었습니다.',
+          });
         }
-
-        toast({
-          title: '저장 완료',
-          description: '부모 계약이 연동되었습니다.',
-        });
 
         router.refresh();
       } catch (error) {

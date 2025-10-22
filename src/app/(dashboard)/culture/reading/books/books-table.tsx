@@ -145,6 +145,9 @@ export function BooksTable({ initialData }: BooksTableProps) {
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
         enableFuzzyFilter={true}
+        enableColumnResizing={true}
+        columnResizeMode="onChange"
+        enableColumnPinning={true}
         enableColumnVisibility={true}
         enablePageSizeSelection={true}
         enablePageJump={true}
